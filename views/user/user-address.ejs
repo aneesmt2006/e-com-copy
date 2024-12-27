@@ -1,0 +1,407 @@
+<%-include("../../views/partials/user/header.ejs")%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Addresses | YourStore</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        .active {
+            background-color: #ea580c;
+            color: white;
+        }
+        .hidden {
+            display: none;
+        }
+        .popup {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.95);
+      color: #ffffff;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 14px;
+      font-weight: 400;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      max-width: 90%;
+      width: auto;
+      white-space: nowrap;
+    }
+    .popup.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+      z-index: 1000;
+    }
+    .popup.success {
+      background-color: #049b06f3;
+      z-index: 1000;
+    }
+    .popup.error {
+      background-color: #000000;
+      z-index: 1000;
+    }
+    .popup.success:hover {
+      background-color: #059669;
+    }
+    .popup.error:hover {
+      background-color: #dc2626;
+    }
+    </style>
+</head>
+<div id="successPopup" class="popup success">
+    <div class="icon-wrapper">
+      <svg
+        class="icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M20 6L9 17L4 12"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </div>
+    Success! Action recorded
+  </div>
+  
+  <div id="errorPopup" class="popup error">
+    <div class="icon-wrapper">
+      <svg
+        class="icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M18 6L6 18M6 6L18 18"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </div>
+    Error! Action failed
+  </div>
+  <!--....................................POP UP MESSSAGE ............................................................. -->
+<body class="bg-gray-100">
+    <div class="min-h-screen flex flex-col md:flex-row">
+        <!-- Sidebar (unchanged) -->
+        <nav class="w-full md:w-96 bg-orange-600 text-white p-6 md:pt-24">
+            <ul class="space-y-2">
+                <li><a href="/profile" class="block py-2 px-4 rounded transition duration-200 hover:bg-orange-500 text-lg"></a></li>
+                <li><a href="/orders" class="block py-2 px-4 rounded transition duration-200 hover:bg-orange-500 text-lg" style="margin-top: 50px;">Orders</a></li>                <li><a href="/address" class="block py-2 px-4 rounded transition duration-200 hover:bg-orange-500 text-lg">Addresses</a></li>
+                <li><a href="/account" class="block py-2 px-4 rounded transition duration-200 hover:bg-orange-500 text-lg">Account Details</a></li>
+                <li><a href="/wishlist" class="block py-2 px-4 rounded transition duration-200 hover:bg-orange-500 text-lg">Wishlist</a></li>
+                <li><a href="/wallet" class="block py-2 px-4 rounded transition duration-200 hover:bg-orange-500 text-lg">wallet</a></li>
+                <li><a href="/logout" class="block py-2 px-4 rounded transition duration-200 hover:bg-orange-500 text-lg">logout</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 md:p-8 overflow-auto mt-10">
+            
+            <div class="max-w-6xl mx-auto  mt-24">
+                <div >
+                    <button id="addNewAddressBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition duration-200" >+ Add New Address</button>
+                </div>
+                <h1 class="text-3xl font-bold mb-8"></h1>
+                <div id="addressesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6 " style="gap: 15px;">
+                    <!-- Address cards will be dynamically added here -->
+                     <%addresses.forEach((address)=>{%>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h2 class="text-lg font-semibold"><%=address.name%></h2>
+                            <p><%=address.streetAddress%>, <%=address.city%>, <%=address.state%> - <%=address.pincode%> </p>
+                            <p>Phone: <%=address.phone%></p>
+                            <div class="mt-4 flex space-x-2">
+                                <button onclick="editAddress('<%=address._id%>')" class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700">Edit</button>
+                                <button onclick="deleteAddress('<%=address._id%>')" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete</button>
+                            </div>
+                        </div>
+                     <%})%>
+                    
+                </div>
+                
+
+                <!-- New Address Form (initially hidden) -->
+                <div  id="addressFormContainer" class="bg-white p-6 rounded-lg shadow-md hidden right-56 absolute w-3/6 mx-auto">
+                    <h2 class="text-xl font-semibold mb-4"   id="formTitle">Add New Address</h2>
+                    <form id="addressForm" class="space-y-4  w-3/6" >
+                        <input type="hidden" id="addressId" name="addressId">
+                        <div>
+                            <label for="fullName" class="block text-sm font-medium text-gray-700">Full Name</label>
+                            <input type="text" id="fullName" name="fullName" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-300 focus:ring focus:ring-orange-200 focus:ring-opacity-50">
+                        </div>
+                        <div>
+                            <label for="streetAddress" class="block text-sm font-medium text-gray-700">Street Address</label>
+                            <input type="text" id="streetAddress" name="streetAddress" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-300 focus:ring focus:ring-orange-200 focus:ring-opacity-50">
+                        </div>
+                        <div>
+                            <label for="city" class="block text-sm font-medium text-gray-700">City</label>
+                            <input type="text" id="city" name="city" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-300 focus:ring focus:ring-orange-200 focus:ring-opacity-50">
+                        </div>
+                        <div>
+                            <label for="state" class="block text-sm font-medium text-gray-700">State</label>
+                            <input type="text" id="state" name="state" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-300 focus:ring focus:ring-orange-200 focus:ring-opacity-50">
+                        </div>
+                        <div>
+                            <label for="pinCode" class="block text-sm font-medium text-gray-700">PIN Code</label>
+                            <input type="text" id="pinCode" name="pinCode" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-300 focus:ring focus:ring-orange-200 focus:ring-opacity-50">
+                        </div>
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-700">Phone</label>
+                            <input type="number" id="phone" name="phone" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-300 focus:ring focus:ring-orange-200 focus:ring-opacity-50">
+                        </div>
+                        <div>
+                            <label for="altPhone" class="block text-sm font-medium text-gray-700">Alternative Phone</label>
+                            <input type="number" id="altPhone" name="altPhone" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-300 focus:ring focus:ring-orange-200 focus:ring-opacity-50">
+                        </div>
+                        <div class="flex space-x-2">
+                            <button type="submit" class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 transition duration-200">Save Address</button>
+                            <button type="button"id="cancelBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition duration-200">Cancel</button>
+                        </div>
+                    </form>
+                    
+                </div>
+               
+            </div>
+            
+        </main>
+    </div>
+
+    <script>
+         const addressesContainer = document.getElementById('addressesContainer');
+        const addNewAddressBtn = document.getElementById('addNewAddressBtn');
+        const addressFormContainer = document.getElementById('addressFormContainer');
+        const addressForm = document.getElementById('addressForm');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const formTitle = document.getElementById('formTitle');
+
+          // Fetch and display addresses
+          async function loadAddresses(addressId) {
+            console.log("address id in load address",addressId)
+            const response = await axios.get(`/addressOfUser/${addressId}`);
+                console.log("RESPONSE IN LOAD ADDRESSS:",response)
+                const address = response.data.addressData.address[response.data.addressData.address.length-1]
+                const newDiv = document.createElement('div');
+                newDiv.classList.add("bg-white", "p-6", "rounded-lg", "shadow-md")
+                newDiv.innerHTML = `
+                    <h2 class="text-lg font-semibold">${address.name}</h2>
+                    <p>${address.streetAddress}, ${address.city}, ${address.state} - ${address.pincode}</p>
+                    <p>Phone: ${address.phone}</p>
+                    <div class="mt-4 flex space-x-2">
+                        <button onclick="editAddress('${address._id}')" class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700">Edit</button>
+                        <button onclick="deleteAddress('${address._id}')" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete</button>
+                    </div>
+                    `;
+                addressesContainer.appendChild(newDiv)
+            
+        }
+
+        addressForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(addressForm);
+            const addressData = Object.fromEntries(formData.entries());
+            let response = null
+
+            console.log("for edittigh",addressData.addressId)
+            if (addressData.addressId) {
+                await axios.put(`/address/edit/${addressData.addressId}`, addressData);
+                window.location.reload()
+            } else {
+            response =  await axios.post('/address/add', addressData)
+               console.log(response)
+               loadAddresses(response.data.addressId);
+            }
+
+            addressFormContainer.classList.add('hidden');
+
+            
+            addNewAddressBtn.classList.remove('hidden');
+            console.log(response.data.addressId)
+           
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        async function editAddress(addressId) {
+            console.log("edit address function triggering",addressId)
+    try {
+        const response = await axios.get(`/addressesOfUser/${addressId}`);
+        const address = response.data.addressData.address[0];
+
+        // Populate the form fields
+        document.getElementById('addressId').value = addressId;
+        document.getElementById('fullName').value = address.name;
+        document.getElementById('streetAddress').value = address.streetAddress;
+        document.getElementById('city').value = address.city;
+        document.getElementById('state').value = address.state;
+        document.getElementById('pinCode').value = address.pincode;
+        document.getElementById('phone').value = address.phone;
+        document.getElementById('altPhone').value = address.altphone;
+
+        // Show the form for editing
+        formTitle.textContent = 'Edit Address';
+        addressFormContainer.classList.remove('hidden');
+        addNewAddressBtn.classList.remove('hidden');
+    } catch (error) {
+        console.error('Error fetching address details:', error);
+    }
+}
+
+
+
+        addNewAddressBtn.addEventListener('click', () => {
+            formTitle.textContent = 'Add New Address';
+            addressForm.reset();
+            addressFormContainer.classList.remove('hidden');
+            addNewAddressBtn.classList.add('hidden');
+        });
+
+        // Cancel form
+        cancelBtn.addEventListener('click', () => {
+            addressFormContainer.classList.add('hidden');
+            addNewAddressBtn.classList.remove('hidden');
+        });
+
+
+        async function deleteAddress(addressId){
+            if(confirm("Are you sure you want to delete this address?")){
+                try {
+                    const response = await axios.delete(`/address/delete/${addressId}`)
+                    showSuccessPopup(response.data.message)
+                    window.location.reload()
+                } catch (error) {
+                    console.error(error);
+                    showErrorPopup("Failed to delete the address.");
+                }
+            }
+        }
+
+        function showSuccessPopup(message) {
+    const successPopup = document.getElementById('successPopup');
+    successPopup.innerText = message;
+    successPopup.classList.add('show');
+    setTimeout(() => {
+      successPopup.classList.remove('show');
+    }, 3000);
+  }
+
+  function showErrorPopup(message) {
+    const errorPopup = document.getElementById('errorPopup');
+    errorPopup.innerText = message;
+    errorPopup.classList.add('show');
+    setTimeout(() => {
+      errorPopup.classList.remove('show');
+    }, 3000);
+  }
+        // Initial load
+        // loadAddresses();
+
+
+
+
+
+        // document.addEventListener('DOMContentLoaded', function() {
+        //     const currentPage = window.location.pathname.split("/").pop();
+        //     const navLinks = document.querySelectorAll('nav a');
+        //     navLinks.forEach(link => {
+        //         if (link.getAttribute('href') === currentPage) {
+        //             link.classList.add('active');
+        //         }
+        //     });
+
+            // const addNewAddressBtn = document.getElementById('addNewAddressBtn');
+            // const newAddressForm = document.getElementById('newAddressForm');
+            // const cancelNewAddress = document.getElementById('cancelNewAddress');
+            // const addressForm = document.getElementById('addressForm');
+            // const addressesContainer = document.getElementById('addressesContainer');
+
+        //     addNewAddressBtn.addEventListener('click', function() {
+        //         newAddressForm.classList.remove('hidden');
+        //         addNewAddressBtn.classList.add('hidden');
+        //     });
+
+        //     cancelNewAddress.addEventListener('click', function() {
+        //         newAddressForm.classList.add('hidden');
+        //         addNewAddressBtn.classList.remove('hidden');
+        //         addressForm.reset();
+        //     });
+
+        //     addressForm.addEventListener('submit', function(e) {
+        //         e.preventDefault();
+        //         const formData = new FormData(addressForm);
+        //         const newAddress = document.createElement('div');
+        //         newAddress.className = 'bg-white p-6 rounded-lg shadow-md mt-3';
+        //         newAddress.innerHTML = `
+        //             <h2 class="text-xl font-semibold mb-4 ">Additional Address</h2>
+        //             <p>${formData.get('fullName')}</p>
+        //             <p>${formData.get('streetAddress')}</p>
+        //             <p>${formData.get('city')}, ${formData.get('state')} ${formData.get('pinCode')}</p>
+        //             <p>Phone: ${formData.get('phone')}</p>
+        //             <p>Alt Phone: ${formData.get('altPhone')}</p>
+        //             <div class="mt-4 flex space-x-2">
+        //                 <button class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 transition duration-200">Edit</button>
+        //                 <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition duration-200 delete-address">Delete</button>
+        //             </div>
+        //         `;
+        //         addressesContainer.appendChild(newAddress);
+        //         newAddressForm.classList.add('hidden');
+        //         addNewAddressBtn.parentNode.insertBefore(newAddress, addNewAddressBtn);
+        //         addNewAddressBtn.classList.remove('hidden');
+        //         addressForm.reset();
+        //     });
+
+        //     // Delete address functionality
+        //     addressesContainer.addEventListener('click', function(e) {
+        //         if (e.target.classList.contains('delete-address')) {
+        //             if (confirm('Are you sure you want to delete this address?')) {
+        //                 e.target.closest('.bg-white').remove();
+        //             }
+        //         }
+        //     });
+        // });
+    </script>
+</body>
+</html>
+<%-include("../../views/partials/user/footer.ejs")%>

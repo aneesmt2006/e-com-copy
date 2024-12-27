@@ -1,0 +1,281 @@
+<head>
+  <link rel="stylesheet" href="css/signup.css" />
+  <link
+    href="https://unpkg.com/boxicons@latest/css/boxicons.min.css"
+    rel="stylesheet"
+  />
+
+  <style>
+    .error-message {
+      color: red;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    .error-msg {
+      color: red;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    .input-group {
+      position: relative;
+    }
+    .password-toggle {
+      position: absolute;
+      right: 50px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .password-toggle i {
+      pointer-events: auto;
+    }
+    #password {
+      padding-right: 30px; /* Adjust based on your existing padding */
+    }
+  </style>
+</head>
+
+<div id="container" class="container">
+  <!-- FORM SECTION -->
+  <div class="row">
+    <!-- SIGN UP -->
+    <div class="col align-items-center flex-col sign-up">
+      <div class="form-wrapper align-items-center">
+        <div class="form sign-up">
+          <form action="">
+            <div class="input-group">
+              <i class="bx bxs-user"></i>
+              <input
+                type="text"
+                placeholder="Username"
+                name="name"
+                id="name"
+                required
+              />
+              <span id="name-error" class="error-msg"></span>
+            </div>
+            <div class="input-group">
+              <i class="bx bx-mail-send"></i>
+              <input
+                type="email"
+                placeholder="Email"
+                name="email"
+                id="email"
+                required
+              />
+              <span id="email-error" class="error-msg"></span>
+            </div>
+            <div class="input-group">
+              <i class="bx bxs-lock-alt"></i>
+              <input
+                type="password"
+                placeholder="Password(Containing at least 6 characters)"
+                name="password"
+                id="password"
+                required
+              />
+              <span class="password-toggle">
+                <i
+                  class="bx bx-hide"
+                  id="togglePassword"
+                  aria-label="Toggle password visibility"
+                ></i>
+              </span>
+              <span id="password-error" class="error-msg"></span>
+            </div>
+            <div class="input-group">
+              <i class="bx bxs-phone"></i>
+              <input
+                type="tel"
+                placeholder="Phone number"
+                name="phone"
+                id="phone"
+                required
+              />
+              <span id="phone-error" class="error-msg"></span>
+            </div>
+
+            <div
+              class="error-message"
+              style="margin-bottom: 2%; color: red; font-size: 20px"
+            ></div>
+
+            <button>Sign up</button>
+          </form>
+          <!-- Google Sign-Up Button -->
+          <form action="/auth/google" method="get">
+            <button type="submit" class="google-signup">
+              <i class="bx bxl-google" style="margin-left: 1%"></i> Sign up with
+              Google
+            </button>
+          </form>
+          <p>
+            <span>Already have an account?</span>
+            <b onclick="toggle()" class="pointer">Sign in here</b>
+          </p>
+        </div>
+      </div>
+    </div>
+    <!-- END SIGN UP -->
+
+    <!-- SIGN IN -->
+    <div class="col align-items-center flex-col sign-in">
+      <div class="form-wrapper align-items-center">
+        <div class="form sign-in">
+          <form action="">
+            <div class="input-group">
+              <i class="bx bxs-user"></i>
+              <input type="email" placeholder="email" id="email" name="email" />
+            </div>
+            <div class="input-group">
+              <i class="bx bxs-lock-alt"></i>
+              <input
+                type="password"
+                placeholder="Password"
+                id="password"
+                name="password"
+              />
+            </div>
+
+            <div
+              class="error-message"
+              style="margin-bottom: 2%; color: red; font-size: 20px"
+            ></div>
+
+            <button type="submit">Sign in</button>
+          </form>
+          <!-- Google Sign-In Button -->
+
+          <form action="/auth/google" method="get">
+            <button type="submit" class="google-signin">
+              <i class="bx bxl-google"></i> Sign in with Google
+            </button>
+          </form>
+          <p>
+            <a href="/forgotPassword" style="text-decoration: none;color: black;"><b>Forgot password?</b></a>
+          </p>
+          <p>
+            <span>Don't have an account?</span>
+            <b onclick="toggle()" class="pointer">Sign up here</b>
+          </p>
+        </div>
+      </div>
+      <div class="form-wrapper"></div>
+    </div>
+    <!-- END SIGN IN -->
+  </div>
+  <!-- END FORM SECTION -->
+
+  <!-- CONTENT SECTION -->
+  <div class="row content-row">
+    <!-- SIGN IN CONTENT -->
+    <div class="col align-items-center flex-col">
+      <div class="text sign-in">
+        <h2>Welcome</h2>
+      </div>
+      <div class="img sign-in"></div>
+    </div>
+    <!-- END SIGN IN CONTENT -->
+
+    <!-- SIGN UP CONTENT -->
+    <div class="col align-items-center flex-col">
+      <div class="img sign-up"></div>
+      <div class="text sign-up">
+        <h2>Join with us</h2>
+      </div>
+    </div>
+    <!-- END SIGN UP CONTENT -->
+  </div>
+  <!-- END CONTENT SECTION -->
+</div>
+
+<script src="js/signup.js"></script>
+<script>
+  const togglePassword = document.querySelector("#togglePassword");
+  const password = document.querySelector("#password");
+
+  togglePassword.addEventListener("click", function (e) {
+    // toggle the type attribute
+    const type =
+      password.getAttribute("type") === "password" ? "text" : "password";
+    password.setAttribute("type", type);
+    // toggle the eye / eye slash icon
+    this.classList.toggle("bx-show");
+    this.classList.toggle("bx-hide");
+    // Update aria-label for accessibility
+    this.setAttribute(
+      "aria-label",
+      type === "password" ? "Show password" : "Hide password"
+    );
+  });
+
+  //signup form submission
+  document
+    .querySelector(".form.sign-up form")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const errorContainer = document.querySelector(
+        ".form.sign-up .error-message"
+      );
+      errorContainer.textContent = null;
+
+      const isValid = validateForm();
+      if (!isValid) {
+        console.log("Validation failed. Aborting submission.");
+        return; // Exit the function if validation fails
+      }
+
+      const name = document.querySelector(".form.sign-up #name").value;
+      const email = document.querySelector(".form.sign-up #email").value;
+      const password = document.querySelector(".form.sign-up #password").value;
+      const phone = document.querySelector(".form.sign-up #phone").value;
+
+      const response = await fetch("/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, phone }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        const { start } = result; // Extract `start` from JSON response
+        console.log("Redirecting to OTP verification...");
+        window.location.href = `/verify-otp?start=${start}`;
+      } else {
+        console.log("error happened");
+        errorContainer.textContent = result.error; // Show error dynamically
+      }
+    });
+
+  // Login Form Submission
+  document
+    .querySelector(".form.sign-in form")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const errorContainer = document.querySelector(
+        ".form.sign-in .error-message"
+      );
+      errorContainer.textContent = null;
+
+      const email = document.querySelector(".form.sign-in #email").value;
+      const password = document.querySelector(".form.sign-in #password").value;
+
+      const response = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        window.location.href = "/"; // Redirect on success
+      } else {
+        console.log("Login failed:", result.message);
+        errorContainer.textContent = result.message;
+      }
+    });
+</script>

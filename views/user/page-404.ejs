@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Page Not Found</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: 'Arial', sans-serif;
+      background-color: #f8f9fa;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 500px;
+      margin: auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      font-size: 3rem;
+      color: #dc3545;
+    }
+
+    p {
+      font-size: 1.2rem;
+      color: #6c757d;
+      margin-bottom: 20px;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .buttons a {
+      text-decoration: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 5px;
+      color: #fff;
+      background-color: #007bff;
+      transition: background-color 0.3s ease;
+    }
+
+    .buttons a:hover {
+      background-color: #0056b3;
+    }
+
+    .buttons a.back {
+      background-color: #28a745;
+    }
+
+    .buttons a.back:hover {
+      background-color: #218838;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2.5rem;
+      }
+      
+      p {
+        font-size: 1rem;
+      }
+
+      .buttons a {
+        font-size: 0.9rem;
+        padding: 8px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>404</h1>
+    <p>Oops! The page you're looking for cannot be found.</p>
+    <div class="buttons">
+      <a href="javascript:history.back()" class="back">Go Back</a>
+      <a href="/">Go to Homepage</a>
+    </div>
+  </div>
+</body>
+</html>

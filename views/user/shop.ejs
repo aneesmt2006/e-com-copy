@@ -1,0 +1,734 @@
+<%-include("../../views/partials/user/header.ejs")%>
+
+<head>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <style>
+    .sort-filter {
+    margin-top: 20px;
+  }
+  
+  .sort-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  .sort-dropdown {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 14px;
+  }
+  
+  .sort-dropdown:focus {
+    outline: none;
+    border-color: #000000;
+  }
+  .heart-colored {
+      color: red;
+  }
+  .fa{
+    color:orangered
+  }
+  .breadcrumb-area {
+            background-size: cover;
+            background-position: center;
+            padding: 100px 0;
+            color: white;
+  }
+  .popup {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.95);
+      color: #ffffff;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 14px;
+      font-weight: 400;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      max-width: 90%;
+      width: auto;
+      white-space: nowrap;
+    }
+    .popup.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+      z-index: 1000;
+    }
+    .popup.success {
+      background-color: #049b06f3;
+      z-index: 1000;
+    }
+    .popup.error {
+      background-color: #000000;
+      z-index: 1000;
+    }
+    .popup.success:hover {
+      background-color: #059669;
+    }
+    .popup.error:hover {
+      background-color: #dc2626;
+    }
+
+
+  </style>
+  
+
+</head>
+
+<div id="successPopup" class="popup success">
+  <div class="icon-wrapper">
+    <svg
+      class="icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M20 6L9 17L4 12"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </div>
+  Success! Action recorded
+</div>
+
+<div id="errorPopup" class="popup error">
+  <div class="icon-wrapper">
+    <svg
+      class="icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M18 6L6 18M6 6L18 18"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </div>
+  Error! Action failed
+</div>
+<!--....................................POP UP MESSSAGE ............................................................. -->
+<main>
+  <!-- breadcrumb-area-start -->
+  <section class="breadcrumb-area" style="background-color: rgb(43 6 6)"  data-background="">
+    <div class="container">
+      <div class="row">
+        <div class="col-xl-12">
+          <div class="breadcrumb-text text-center">
+            <h1 style="color: white;">Our Shop</h1>
+            <ul class="breadcrumb-menu">
+              <li><a href="/">home</a></li>
+              <li><span>shop</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- breadcrumb-area-end -->
+
+  <!-- shop-area start -->
+  <section class="shop-area pt-100 pb-100">
+    <div class="container">
+      <div class="row">
+        <div class="col-xl-8 col-lg-8">
+          <div class="shop-banner mb-50">
+            <img height="300px" width="800px" src="/img/slider/sitright.png" alt="" he />
+             
+          </div>
+          <!-- tab filter -->
+          <div class="row mb-10">
+            <div class="col-xl-5 col-lg-6 col-md-6">
+              <div class="product-showing mb-40">
+                <p>SELECT YOUR CHOICE</p>
+              </div>
+            </div>
+            <div class="col-xl-7 col-lg-6 col-md-6">
+              <div class="shop-tab f-right">
+                <ul class="nav text-center" id="myTab" role="tablist">
+                  <li class="nav-item">
+                    <a
+                      class="nav-link active"
+                      id="home-tab"
+                      data-toggle="tab"
+                      href="#home"
+                      role="tab"
+                      aria-controls="home"
+                      aria-selected="true"
+                      ><i class="fas fa-list-ul"></i>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a
+                      class="nav-link"
+                      id="profile-tab"
+                      data-toggle="tab"
+                      href="#profile"
+                      role="tab"
+                      aria-controls="profile"
+                      aria-selected="false"
+                      ><i class="fas fa-th-large"></i
+                    ></a>
+                  </li>
+                </ul>
+              </div>
+              <div class="pro-filter mb-40 f-right">
+                <form action="#">
+                  <select name="pro-filter" id="pro-filter">
+                    <option value="1">Categories</option>
+                    <option value="2">Hoodies</option>
+                    <option value="3">T-shirts</option>
+                    <option value="4">Jereceys</option>
+                  </select>
+                </form>
+              </div>
+            </div>
+          </div>
+          <!-- tab content -->
+          <div class="tab-content" id="myTabContent">
+            <div
+              class="tab-pane fade show active"
+              id="home"
+              role="tabpanel"
+              aria-labelledby="home-tab"
+            >
+            
+              <div class="row">
+                <%if(products.length>0){%>
+                <%for(let i=0;i < products.length;i++){%>
+                <div class="col-lg-6 col-md-6">
+                  <div class="product-wrapper mb-50">
+                    <div class="product-img mb-25">
+                      <a href="/productDetails?id=<%= products[i]._id %>">
+                        <img
+                          src="/uploads/re-image/<%= products[i].productImage[0] %>"
+                          alt="products[i].productName"
+                        />
+                        <img
+                          class="secondary-img"
+                          src="/uploads/re-image/<%= products[i].productImage[1]%>"
+                          alt="products[1].productName"
+                        />
+                      </a>
+                      <div class="product-action text-center">
+                        <a href="#" title="Shoppingb Cart">
+                          <i class="flaticon-shopping-cart"></i>
+                        </a>
+                        <a href="#" title="Quick View">
+                          <i class="flaticon-eye"></i>
+                        </a>
+                        <a
+                          href="#"
+                          data-toggle="tooltip"
+                          data-placement="right"
+                          title="Compare"
+                        >
+                          <i class="flaticon-compare"></i>
+                        </a>
+                      </div>
+                      <div class="sale-tag">
+                        <span class="new">new</span>
+                        <span class="sale">sale</span>
+                      </div>
+                    </div>
+                    <div class="product-content">
+                      <div class="pro-cat mb-10">
+                        <a href="/productDetails?id=<%= products[i]._id %>"
+                          ><%=products[i].category.name%>,</a
+                        >
+                        <a href="/productDetails?id=<%= products[i]._id %>"
+                          ><%=products[i].productName%></a
+                        >
+                      </div>
+                      <h4>
+                        <a href="/productDetails?id=<%= products[i]._id %>"
+                          ><%=products[i].productName%></a
+                        >
+                      </h4>
+                      <div class="product-meta">
+                        <div class="pro-price">
+                          <span>
+                            $<%= products[i].salePrice.toFixed(2) %> <!-- Display effective sale price -->
+                          </span>
+                          <% if (products[i].salePrice < products[i].regularPrice) { %>
+                            <span class="old-price">
+                              $<%= products[i].regularPrice.toFixed(2) %> <!-- Show regular price -->
+                            </span>
+                            <span class="discount">
+                              <% const discountPercent = ((products[i].regularPrice - products[i].salePrice) / products[i].regularPrice) * 100; %>
+                              (<%= discountPercent.toFixed(0) %>% OFF)
+                            </span>
+                          <% } %>
+                        </div>
+                      </div>
+                      
+                      <div class="product-wishlist">
+                        <a href="javascript:void(0);" class="wishlist-button" data-product-id="<%= products[i]._id %>">
+                          <i class="<%= products[i].isInWishlist ? 'fa fa-heart' : 'far fa-heart' %>" title="Wishlist"></i>
+                        </a>
+                      </div>
+                      
+                    </div>
+                  </div>
+                </div>
+
+                <%}%>
+                <%}else{%>
+                  <div class="no-products-found">
+                    <div class="text-center py-16">
+                        <div class="flex justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300">
+                                <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"></path>
+                                <path d="m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9"></path>
+                                <path d="M12 3v6"></path>
+                            </svg>
+                        </div>
+                        <h3 class="mt-4 text-lg font-semibold text-gray-900">No products found</h3>
+                        <p class="mt-2 text-sm text-gray-500">Get started by creating a new product or try a different search.</p>
+                        <div class="mt-6">
+                            <!-- You can add a button here if needed -->
+                            <a href="/shop" style="background-color: orangered;" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                              Go to Shop
+                          </a>
+                        </div>
+                    </div>
+                </div>
+                  <%}%>
+              </div>
+            </div>
+            <div
+              class="tab-pane fade"
+              id="profile"
+              role="tabpanel"
+              aria-labelledby="profile-tab"
+            >
+              <div class="row">
+                <%for(let i=0 ; i < products.length ; i++){%>
+                <div class="col-xl-5">
+                  <div class="product-wrapper mb-30">
+                    <div class="product-img">
+                      <a href="/productDetails?id=<%= products[i]._id %>">
+                        <img
+                          src="/uploads/re-image/<%= products[i].productImage[0] %>"
+                          alt="products[i].productName"
+                        />
+                        <img
+                          class="secondary-img"
+                          src="/uploads/re-image/<%= products[i].productImage[1]%>"
+                          alt="<%= products[i].productImage[1]%>"
+                        />
+                      </a>
+                      <div class="sale-tag">
+                        <span class="new">new</span>
+                        <span class="sale">sale</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xl-7">
+                  <div class="product-content pro-list-content pr-0 mb-50">
+                    <div class="pro-cat mb-10">
+                      <a href="/productDetails?id=<%= products[i]._id %>"
+                        ><%=products[i].category.name%>,</a
+                      >
+                      <a href="/productDetails?id=<%= products[i]._id %>"
+                        ><%=products[i].productName%></a
+                      >
+                    </div>
+                    <a href="/productDetails?id=<%= products[i]._id %>"
+                      ><%=products[i].productName%></a
+                    >
+                    <div class="product-meta mb-10">
+                      <div class="pro-price">
+                        <span>$<%= products[i].salePrice %>.00</span>
+                        <span class="old-price"
+                          >$<%= products[i].regularPrice %>.00</span
+                        >
+                      </div>
+                    </div>
+                    <p>
+                     <%=products[i].description%>
+                     <span>Material:</span><span><%=products[i].material%></span><br>
+                     <span>fit:</span><span><%=products[i].fit%></span><br>
+                     <span>Washable Type:</span><span><%=products[i].wash%></span>
+                    </p>
+                    <div class="product-action" style="display: none;">
+                      <a href="#" title="Shoppingb Cart">
+                        <i class="flaticon-shopping-cart"></i>
+                      </a>
+                      <a href="#" title="Quick View">
+                        <i class="flaticon-eye"></i>
+                      </a>
+                      <a href="#" title="Wishlist"
+                        ><i class="flaticon-like"></i
+                      ></a>
+                    </div>
+                  </div>
+                </div>
+                <%}%>
+              </div>
+            </div>
+          </div>
+          <div class="basic-pagination basic-pagination-2 text-center mt-20">
+            <ul>
+              <!-- Previous Button -->
+              <% if (page > 1) { %>
+                <li>
+                  <a href="/shop?page=<%= page - 1 %>&sort=<%= sortOption || '' %>"><i class="fas fa-angle-double-left"></i></a>
+                </li>
+              <% } %>
+          
+              <!-- Page Numbers -->
+              <% for (let i = 1; i <= totalPages; i++) { %>
+                <li class="<%= i === page ? 'active' : '' %>">
+                  <a href="/shop?page=<%= i %>&sort=<%= sortOption || '' %>"><%= i %></a>
+                </li>
+              <% } %>
+          
+              <!-- Next Button -->
+              <% if (page < totalPages) { %>
+                <li>
+                  <a href="/shop?page=<%= page + 1 %>&sort=<%= sortOption || '' %>"><i class="fas fa-angle-double-right"></i></a>
+                </li>
+              <% } %>
+            </ul>
+          </div>
+        
+        </div>
+        <div class="col-xl-4 col-lg-4">
+          <div class="sidebar-box">
+            <div class="shop-widget">
+              <h3 class="shop-title">Search by</h3>
+              <form action="/shop" method="GET" class="shop-search">
+                <input
+                  type="text"
+                  name="search"
+                  placeholder="Your keyword...."
+                  value="<%= search || '' %>"
+                />
+                <input type="hidden" name="sizes" value="<%= sizes || '' %>" />
+                <input type="hidden" name="categories" value="<%= categories || '' %>" />
+                <input type="hidden" name="sort" value="<%= sortOption || '' %>" />
+                <button type="submit">
+                  <i class="fa fa-search" style="color: white;"></i>
+                </button>
+              </form>
+            </div>
+
+            <!-- <div class="shop-widget">
+              <h3 class="shop-title">Brand</h3>
+              <ul class="shop-link">
+                <li>
+                  <a href="shop.html"><i class="far fa-square"></i> Apex</a>
+                </li>
+                <li>
+                  <a href="shop.html"><i class="far fa-square"></i> Bata</a>
+                </li>
+                <li>
+                  <a href="shop.html"><i class="far fa-square"></i> Puma</a>
+                </li>
+                <li>
+                  <a href="shop.html"><i class="far fa-square"></i> Nike</a>
+                </li>
+                <li>
+                  <a href="shop.html"><i class="far fa-square"></i> Likoda</a>
+                </li>
+                <li>
+                  <a href="shop.html"><i class="far fa-square"></i> Piolaba</a>
+                </li>
+              </ul>
+            </div> -->
+
+            <div class="sort-filter">
+              <label for="sort-select" class="sort-label">Sort by:</label>
+              <select
+                id="sort-select"
+                class="sort-dropdown"
+                onchange="applySorting(this.value)"
+              >
+                <option value="price-low-high" <%= sortOption === 'price-low-high' ? 'selected' : '' %>>Price: Low to High</option>
+                <option value="price-high-low" <%= sortOption === 'price-high-low' ? 'selected' : '' %>>Price: High to Low</option>
+                <option value="new-arrivals" <%= sortOption === 'new-arrivals' ? 'selected' : '' %>>New Arrivals</option>
+                <option value="name-asc" <%= sortOption === 'name-asc' ? 'selected' : '' %>>A - Z</option>
+                <option value="name-desc" <%= sortOption === 'name-desc' ? 'selected' : '' %>>Z - A</option>
+              </select>
+            </div>
+
+            <div class="shop-widget" style="margin-top: 25px;">
+              <h3 class="shop-title">Sizes</h3>
+              <ul class="shop-link">
+                <% allSizes.forEach((size) => { %>
+                  <li>
+                    <input
+                      type="checkbox"
+                      value="<%= size %>"
+                      onchange="updateFilter('sizes', this.value, this.checked)"
+                      <%= sizes.includes(size) ? 'checked' : '' %>
+                    />
+                    <label><%= size %></label>
+                  </li>
+                <% }); %>
+              </ul>
+            </div>
+            
+            <div class="shop-widget">
+              <h3 class="shop-title">Categories</h3>
+              <ul class="shop-link">
+                <% allCategories.forEach((category) => { %>
+                  <li>
+                    <input
+                      type="checkbox"
+                      value="<%= category._id %>"
+                      onchange="updateFilter('categories', this.value, this.checked)"
+                      <%= categories.includes(category._id.toString()) ? 'checked' : null %>
+                    />
+                    <label><%= category.name %></label>
+                  </li>
+                <% }); %>
+              </ul>
+            </div>
+
+            <!-- <div class="shop-widget">
+              <h3 class="shop-title">Tags</h3>
+              <ul class="shop-tag">
+                <li><a href="shop.html"> Minimal</a></li>
+                <li><a href="shop.html"> T-Shirts</a></li>
+                <li><a href="shop.html"> Pants</a></li>
+                <li><a href="shop.html"> Jeants</a></li>
+                <li><a href="shop.html"> Winter</a></li>
+                <li><a href="shop.html"> Latest</a></li>
+                <li><a href="shop.html"> New</a></li>
+                <li><a href="shop.html"> Sale</a></li>
+              </ul>
+            </div> -->
+
+            <!-- <div class="shop-widget">
+              <h3 class="shop-title">color</h3>
+              <ul class="shop-link">
+                <li>
+                  <a href="shop.html"><span class="blue"></span> Blue</a>
+                </li>
+                <li>
+                  <a href="shop.html"><span class="green"></span> Green</a>
+                </li>
+                <li>
+                  <a href="shop.html"><span class="orange"></span> Orange</a>
+                </li>
+                <li>
+                  <a href="shop.html"><span class="navy"></span> Navy</a>
+                </li>
+                <li>
+                  <a href="shop.html"><span class="pinkish"></span> Pinkish</a>
+                </li>
+                <li>
+                  <a href="shop.html"><span class="vista"></span> Vista Blue</a>
+                </li>
+              </ul>
+            </div> -->
+
+            <!-- <div class="shop-widget">
+              <h3 class="shop-title">Recent Product</h3>
+              <ul class="shop-sidebar-product">
+                <li>
+                  <div class="side-pro-img">
+                    <a href="product-details.html"
+                      ><img src="img/product/latest/shop-rsp1.jpg" alt=""
+                    /></a>
+                  </div>
+                  <div class="side-pro-content">
+                    <div class="side-pro-rating">
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                    </div>
+                    <h5>
+                      <a href="product-details.html">Raglan Baseball-Style</a>
+                    </h5>
+                    <div class="side-pro-price">
+                      <span>$119.00 USD</span>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div class="side-pro-img">
+                    <a href="product-details.html"
+                      ><img src="img/product/latest/shop-rsp3.jpg" alt=""
+                    /></a>
+                  </div>
+                  <div class="side-pro-content">
+                    <div class="side-pro-rating">
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                    </div>
+                    <h5>
+                      <a href="product-details.html">Raglan Baseball-Style</a>
+                    </h5>
+                    <div class="side-pro-price">
+                      <span>$119.00 USD</span>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div class="side-pro-img">
+                    <a href="product-details.html"
+                      ><img src="img/product/latest/shop-rsp2.jpg" alt=""
+                    /></a>
+                  </div>
+                  <div class="side-pro-content">
+                    <div class="side-pro-rating">
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                    </div>
+                    <h5>
+                      <a href="product-details.html">Raglan Baseball-Style</a>
+                    </h5>
+                    <div class="side-pro-price">
+                      <span>$119.00 USD</span>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div class="side-pro-img">
+                    <a href="product-details.html"
+                      ><img src="img/product/latest/shop-rsp4.jpg" alt=""
+                    /></a>
+                  </div>
+                  <div class="side-pro-content">
+                    <div class="side-pro-rating">
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                    </div>
+                    <h5>
+                      <a href="product-details.html">Raglan Baseball-Style</a>
+                    </h5>
+                    <div class="side-pro-price">
+                      <span>$119.00 USD</span>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div> -->
+
+            <div class="shop-widget">
+              <div class="shop-sidebar-banner">
+                <a href="/shop"
+                  ><img src="/img/slider/small.png" alt=""
+                /></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- shop-area end -->
+</main>
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+            const elements = document.querySelectorAll('[data-background]');
+            elements.forEach(function(element) {
+                const bgImage = element.getAttribute('data-background');
+                element.style.backgroundImage = `url(${bgImage})`;
+            });
+        });
+
+
+function updateFilter(param, value, isChecked) {
+  if (!value) return; // Skip if value is empty
+
+  const url = new URL(window.location.href);
+  let params = url.searchParams.get(param)?.split(',') || [];
+
+  if (isChecked) {
+    if (!params.includes(value)) params.push(value);
+  } else {
+    params = params.filter((item) => item !== value);
+  }
+
+  url.searchParams.set(param, params.join(','));
+  window.location.href = url.toString();
+}
+
+   function applySorting(sortValue) {
+    const params = new URLSearchParams(window.location.search);
+    params.set('sort', sortValue); // Set the selected sort option
+    params.set('page', '1'); // Reset pagination to the first page
+    window.location.href = `/shop?${params.toString()}`;
+  }
+
+
+
+
+  document.querySelectorAll('.wishlist-button').forEach((button) => {
+    console.log("wishlist triggered from frondend")
+    button.addEventListener('click', async () => {
+        const productId = button.getAttribute('data-product-id');
+        const icon = button.querySelector('i');
+        try {
+            const response = await axios.post('/addToWishlist', { productId });
+            if (response.status === 200) {
+                // Change the icon to "fa fa-heart"
+                icon.classList.remove('far');
+                icon.classList.add('fa');
+                icon.classList.add('heart-colored'); // Optional CSS class for color
+                showSuccessPopup('✔ Added to wishlist!');
+            } 
+
+        } catch (error) {
+          showErrorPopup(error.response.data.message || 'Error adding to wishlist');
+        }
+    });
+});
+
+function showSuccessPopup(message) {
+    const successPopup = document.getElementById('successPopup');
+    successPopup.innerText = message;
+    successPopup.classList.add('show');
+    setTimeout(() => {
+      successPopup.classList.remove('show');
+    }, 3000);
+  }
+
+  function showErrorPopup(message) {
+    const errorPopup = document.getElementById('errorPopup');
+    errorPopup.innerText = message;
+    errorPopup.classList.add('show');
+    setTimeout(() => {
+      errorPopup.classList.remove('show');
+    }, 3000);
+  }
+
+
+</script>
+<%-include("../../views/partials/user/footer.ejs")%>

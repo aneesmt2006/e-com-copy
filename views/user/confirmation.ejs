@@ -1,0 +1,103 @@
+
+
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .slide-in {
+            animation: slideIn 0.5s ease-out forwards;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800">
+    <div class="min-h-screen flex items-center justify-center px-4 py-12">
+        <div class="max-w-3xl w-full space-y-6 bg-white p-6 rounded-lg shadow-xl slide-in">
+            <div class="text-center">
+                <h1 class="text-3xl font-extrabold text-green-600 mb-2">Order Confirmed!</h1>
+                <p class="text-lg text-gray-600">Your order has been successfully placed.</p>
+            </div>
+
+            <div class="flex justify-center">
+                <div class="h-1 w-32 bg-green-600 rounded"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <h2 class="text-xl font-bold mb-2">Order Summary</h2>
+                    <p class="text-gray-600">Order #: <span class="font-semibold">ORD-<%=orderData.orderId%></span></p>
+                    <p class="text-gray-600">Date: <span class="font-semibold"><%=orderData.createdOn%></span></p>
+                    <p class="text-gray-600">Total: <span class="font-semibold text-green-600">$<%=orderData.finalAmount%></span></p>
+                    <p class="text-gray-600">Discount: <span class="font-semibold text-red-600">-$<%= totalDiscount %></span></p>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold mb-2">Shipping Details</h2>
+                    <p class="text-gray-600"><%=orderData.address.name%></p>
+                    <p class="text-gray-600">123 Main St, Apt 4B<%=orderData.address.streetAddress%>,</p>
+                    <p class="text-gray-600"><%=orderData.address.city%>, <%=orderData.address.pinCode%></p>
+                    <p class="text-gray-600"><%=orderData.address.state%></p>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h3 class="text-lg font-bold mb-2">Items Ordered</h3>
+                <ul class="space-y-1 text-sm">
+
+                    <%orderData.orderedItems.forEach((item)=>{%>
+                    <li class="flex justify-between items-center">
+                        <span><%=item.product.productName%>  X <%=item.quantity%></span>
+                       
+                    </li>
+                    <%});%>
+                    
+                </ul>
+                
+            </div>
+
+            <div class="text-center space-y-4">
+                <p class="text-gray-600">We'll send you a shipping confirmation email once your order is on its way.</p>
+                <a href="/" class="inline-block bg-green-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-green-700 transition duration-300 pulse">Continue shopping</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pop-up Message -->
+<div id="popup" class="fixed inset-0 flex items-center justify-center hidden bg-black bg-opacity-50">
+    <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 slide-in text-center">
+        <div class="mb-3">
+            <svg class="w-16 h-16 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+        <h2 class="text-2xl font-bold mb-3 text-green-600">Order Confirmed!</h2>
+        <p class="text-gray-600 mb-4 text-sm">Great news! Your order has been successfully confirmed. We'll start preparing it for shipment right away.</p>
+        <div class="flex justify-center">
+            <button onclick="closePopup()" class="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition duration-300 text-sm">Awesome, thanks!</button>
+        </div>
+    </div>
+</div>
+
+    <script>
+        // Show pop-up after a short delay
+        setTimeout(() => {
+            document.getElementById('popup').classList.remove('hidden');
+        }, 1500);
+
+        function closePopup() {
+            document.getElementById('popup').classList.add('hidden');
+        }
+    </script>

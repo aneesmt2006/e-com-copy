@@ -1,0 +1,508 @@
+<%- include("../../views/partials/admin/header") %>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Coupon Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .animate-scale {
+            transition: transform 0.3s ease-in-out;
+        }
+        .animate-scale:hover {
+            transform: scale(1.05);
+        }
+        .modalshow {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+        .popup {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.95);
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            width: auto;
+            white-space: nowrap;
+        }
+        .popup.show {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+        .popup.success {
+            background-color: #10B981;
+        }
+        .popup.error {
+            background-color: #EF4444;
+        }
+        .popup.success:hover {
+            background-color: #059669;
+        }
+        .popup.error:hover {
+            background-color: #DC2626;
+        }
+        .icon-wrapper {
+            background-color: #ffffff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon {
+            width: 12px;
+            height: 12px;
+        }
+        .success .icon {
+            color: #10B981;
+        }
+        .error .icon {
+            color: #EF4444;
+        }
+        @media (max-width: 480px) {
+            .popup {
+                font-size: 12px;
+                padding: 4px 10px;
+            }
+            .icon-wrapper {
+                width: 18px;
+                height: 18px;
+            }
+            .icon {
+                width: 10px;
+                height: 10px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div id="successPopup" class="popup success">
+        <div class="icon-wrapper">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        Success! Action recorded
+    </div>
+
+    <div id="errorPopup" class="popup error">
+        <div class="icon-wrapper">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        Error! Action failed
+    </div>
+    <!-- ..........................POP UP.......................... -->
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl md:text-4xl font-bold text-indigo-800 mb-8 text-center animate-fade-in">Coupon Management</h1>
+        
+        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-8 animate-fade-in">
+            <div class="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-4 md:space-y-0 mb-4">
+                <input type="text" placeholder="Search coupons..." class="w-full md:w-1/3 px-4 py-2 rounded-lg border border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300">
+                <select class="w-full md:w-1/3 px-4 py-2 rounded-lg border border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300">
+                    <option value="">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="expired">Expired</option>
+                    <option value="upcoming">Upcoming</option>
+                </select>
+                <select class="w-full md:w-1/3 px-4 py-2 rounded-lg border border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300">
+                    <option value="">Sort by</option>
+                    <option value="name">Name</option>
+                    <option value="start-date">Start Date</option>
+                    <option value="end-date">End Date</option>
+                    <option value="offer-price">Offer Price</option>
+                </select>
+            </div>
+            <button id="addCouponBtn" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+                Add New Coupon
+            </button>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden animate-fade-in">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-indigo-100 text-indigo-800 uppercase text-xs md:text-sm leading-normal">
+                            <th class="py-3 px-4 md:px-6 text-left">Coupon Name</th>
+                            <th class="py-3 px-4 md:px-6 text-center">Start Date</th>
+                            <th class="py-3 px-4 md:px-6 text-center">End Date</th>
+                            <th class="py-3 px-4 md:px-6 text-center">Offer Price</th>
+                            <th class="py-3 px-4 md:px-6 text-center">Minimum Price</th>
+                            <th class="py-3 px-4 md:px-6 text-center">Status</th>
+                            <th class="py-3 px-4 md:px-6 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-600 text-sm font-light">
+                        <%couponData.forEach(coupon => {%>
+                        <tr class="border-b border-gray-200 hover:bg-indigo-50 transition duration-300">
+                            <td class="py-3 px-4 md:px-6 text-left whitespace-nowrap">
+                                <span class="font-medium"><%=coupon.name%></span>
+                            </td>
+                            <td class="py-3 px-4 md:px-6 text-center">
+                                <span><%= new Date(coupon.createOn).toLocaleDateString() %></span>
+                            </td>
+                            <td class="py-3 px-4 md:px-6 text-center">
+                                <span><%= new Date(coupon.expiresOn).toLocaleDateString() %></span>
+                            </td>
+                            <td class="py-3 px-4 md:px-6 text-center">
+                                <span class="font-bold">$<%=coupon.offerPrice%></span>
+                            </td>
+                            <td class="py-3 px-4 md:px-6 text-center">
+                                <span>$<%=coupon.minimumPrice%></span>
+                            </td>
+                            <td class="py-3 px-4 md:px-6 text-center">
+                                <span class="bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs"><%=coupon.isList%></span>
+                            </td>
+                            <td class="py-3 px-4 md:px-6 text-center">
+                                <div class="flex items-center justify-center space-x-2">
+                                    <button class="editCouponBtn w-8 h-8 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-110 focus:outline-none" title="Edit" data-coupon-id="<%=coupon._id%>">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 mx-auto">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                        </svg>
+                                    </button>
+                                    <button class="deleteCouponBtn w-8 h-8 rounded-full bg-red-500 text-white hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-110 focus:outline-none" title="Delete" data-coupon-id="<%=coupon._id%>">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 mx-auto">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <%});%>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-center mt-4">
+            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                <!-- Pagination buttons here -->
+            </nav>
+        </div>
+    </div>
+
+    <!-- Add/Edit Coupon Modal -->
+    <div id="couponModal" class="modalshow fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden opacity-0">
+        <div class="modal-content relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white transform -translate-y-full transition-all duration-300">
+            <div class="mt-3">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modalTitle">Add New Coupon</h3>
+                <form id="couponForm" class="space-y-4">
+                    <input type="hidden" id="couponId">
+                    <div>
+                        <label for="couponName" class="block text-sm font-medium text-gray-700">Coupon Name</label>
+                        <input type="text" id="couponName" name="couponName" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                        <p id="couponNameError" class="text-red-500 text-sm mt-1"></p>
+
+                    </div>
+                    <div>
+                        <label for="startDate" class="block text-sm font-medium text-gray-700">Start Date</label>
+                        <input type="text" id="startDate" name="startDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                        <p id="startDateError" class="text-red-500 text-sm mt-1"></p>
+                    </div>
+                    <div>
+                        <label for="endDate" class="block text-sm font-medium text-gray-700">End Date</label>
+                        <input type="text" id="endDate" name="endDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                        <p id="endDateError" class="text-red-500 text-sm mt-1"></p>
+                    </div>
+                    <div>
+                        <label for="offerPrice" class="block text-sm font-medium text-gray-700">Offer Price</label>
+                        <input type="number" id="offerPrice" name="offerPrice" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                        <p id="offerPriceError" class="text-red-500 text-sm mt-1"></p>
+                    </div>
+                    <div>
+                        <label for="minimumPrice" class="block text-sm font-medium text-gray-700">Minimum Price</label>
+                        <input type="number" id="minimumPrice" name="minimumPrice" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                        <p id="minimumPriceError" class="text-red-500 text-sm mt-1"></p>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" id="cancelBtn" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition duration-300">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-300">
+                            Save Coupon
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <%- include("../../views/partials/admin/footer") %>
+    <script>
+        
+   // Display success popup with a custom message
+    function showSuccessPopup(message) {
+    const successPopup = document.getElementById('successPopup');
+    successPopup.innerText = message;
+    successPopup.classList.add('show');
+    setTimeout(() => {
+        successPopup.classList.remove('show');
+    }, 3000); // Display for 3 seconds
+}
+// Display error popup with a custom message
+function showErrorPopup(message) {
+    const errorPopup = document.getElementById('errorPopup');
+    errorPopup.innerText = message;
+    errorPopup.classList.add('show');
+    setTimeout(() => {
+        errorPopup.classList.remove('show');
+    }, 3000); // Display for 3 seconds
+}
+
+
+
+
+        // Initialize date pickers
+        flatpickr("#startDate", {
+            enableTime: false,
+            dateFormat: "Y-m-d",
+        });
+        flatpickr("#endDate", {
+            enableTime: false,
+            dateFormat: "Y-m-d",
+        });
+
+        // Add animation to table rows
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.classList.add('animate-fade-in');
+        });
+
+        const modal = document.getElementById('couponModal');
+        const modalContent = modal.querySelector('.modal-content');
+
+        function openModal(title = 'Add New Coupon') {
+            console.log("from modal")
+            document.getElementById('modalTitle').textContent = title;
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.add('opacity-100');
+                modalContent.classList.add('translate-y-0');
+            }, 20);
+        }
+
+        function closeModal() {
+            modal.classList.remove('opacity-100');
+            modalContent.classList.remove('translate-y-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Open modal for adding new coupon
+        document.getElementById('addCouponBtn').addEventListener('click', () => {
+            console.log('clicked the button')
+            document.getElementById('couponForm').reset();
+            document.getElementById('couponId').value = '';
+            openModal('Add New Coupon');
+        });
+
+        // Close modal when clicking outside or on cancel button
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+                clearErrors()
+            }
+        });
+        document.getElementById('cancelBtn').addEventListener('click', closeModal);
+
+        // Handle form submission
+        document.getElementById('couponForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!validateForm()) {
+                return;
+            }
+
+            const formData = new FormData(e.target);
+            const couponData = Object.fromEntries(formData.entries());
+            const couponId = document.getElementById('couponId').value;
+
+            try {
+                let response;
+                if (couponId) {
+                    // Update existing coupon
+                    console.log("editing dataaaa ----------",couponData)
+                    response = await axios.put(`/admin/editCoupon/${couponId}`, couponData);
+                    if(response){
+                        showSuccessPopup("✔ coupon updated successfully...")
+                    }
+                } else {
+                    // Add new coupon
+                    console.log(couponData)
+                    response = await axios.post('/admin/addCoupon', couponData);
+                    if(response){
+                        showSuccessPopup("✔ coupon added successfully...")
+                    }
+                    console.log('response data :',response)
+                }
+
+                if (response.data.success) {
+                   setTimeout(()=>{
+                    window.location.reload();
+                   },2000)
+                } else {
+                    showErrorPopup("Something wrong X- (error happened )")
+                }
+            } catch (error) {
+                console.error('Error saving coupon:', error);
+                alert('An error occurred. Please try again.');
+            }
+            closeModal();
+        });
+
+        // Edit coupon
+        document.querySelectorAll('.editCouponBtn').forEach(button => {
+            button.addEventListener('click', async () => {
+                const couponId = button.getAttribute('data-coupon-id');
+                try {
+                    const response = await axios.get(`/admin/getCouponData/${couponId}`);
+                    const coupon = response.data.couponData;
+                    console.log('editing datas',coupon)
+                    
+                    document.getElementById('couponId').value = coupon._id;
+                    document.getElementById('couponName').value = coupon.name;
+                    document.getElementById('startDate').value = coupon.createOn;
+                    document.getElementById('endDate').value = coupon.expiresOn;
+                    document.getElementById('offerPrice').value = coupon.offerPrice;
+                    document.getElementById('minimumPrice').value = coupon.minimumPrice;
+                    
+                    openModal('Edit Coupon');
+                } catch (error) {
+                    console.error('Error fetching coupon details:', error);
+                    alert('Failed to load coupon details. Please try again.');
+                }
+            });
+        });
+
+        // Delete coupon
+        document.querySelectorAll('.deleteCouponBtn').forEach(button => {
+            button.addEventListener('click', async () => {
+                const couponId = button.getAttribute('data-coupon-id');
+               
+                    try {
+                        const response = await axios.delete(`/admin/deleteCoupon/${couponId}`);
+                        if (response.data.success) {
+                            showErrorPopup("✔ Coupon deleted succesfully")
+
+                            setTimeout(()=>{
+                                window.location.reload();
+                            },2000)
+                        } else {
+                            showErrorPopup("Failed to delete coupon. Please try again.")
+                        }
+                    } catch (error) {
+                        console.error('Error deleting coupon:', error);
+                        alert('An error occurred. Please try again.');
+                    }
+                
+            });
+        });
+
+        const validateForm = () => {
+        const couponName = document.getElementById("couponName").value.trim();
+        const startDate = document.getElementById("startDate").value.trim();
+        const endDate = document.getElementById("endDate").value.trim();
+        const offerPrice = document.getElementById("offerPrice").value.trim();
+        const minimumPrice = document.getElementById("minimumPrice").value.trim();
+
+        let isValid = true;
+
+        clearErrors(); // Clear previous errors
+
+        // Validate Coupon Name
+        if (!couponName) {
+            document.getElementById("couponNameError").textContent = "Coupon name is required.";
+            isValid = false;
+        } else if (couponName.length < 3) {
+            document.getElementById("couponNameError").textContent = "Coupon name must be at least 3 characters long.";
+            isValid = false;
+        }
+
+        // Validate Start Date
+        const start = new Date(startDate);
+        if (!startDate || isNaN(start)) {
+            document.getElementById("startDateError").textContent = "Start date is invalid or missing.";
+            isValid = false;
+        }
+
+        // Validate End Date
+        const end = new Date(endDate);
+        if (!endDate || isNaN(end)) {
+            document.getElementById("endDateError").textContent = "End date is invalid or missing.";
+            isValid = false;
+        } else if (end <= new Date()) {
+            document.getElementById("endDateError").textContent = "End date must be a future date.";
+            isValid = false;
+        } else if (start && end <= start) {
+            document.getElementById("endDateError").textContent = "End date must be after the start date.";
+            isValid = false;
+        }
+
+        // Validate Offer Price
+        if (!offerPrice || isNaN(offerPrice) || Number(offerPrice) <= 0) {
+            document.getElementById("offerPriceError").textContent = "Offer price must be a positive number and greater than zero.";
+            isValid = false;
+        }
+
+        // Validate Minimum Price
+        if (!minimumPrice || isNaN(minimumPrice) || Number(minimumPrice) <= 0) {
+            document.getElementById("minimumPriceError").textContent = "Minimum price must be a positive number and greater than zero.";
+            isValid = false;
+        }
+
+        // Ensure Offer Price < Minimum Price
+        if (Number(offerPrice) >= Number(minimumPrice)) {
+            document.getElementById("offerPriceError").textContent = "Offer price must be less than the minimum price.";
+            isValid = false;
+        }
+
+        return isValid;
+    };
+
+       // Clear all error messages
+       const clearErrors = () => {
+        document.querySelectorAll(".text-red-500").forEach((error) => {
+            error.textContent = "";
+        });
+    };
+        
+    </script>
+    
+
+</body>
+

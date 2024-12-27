@@ -1,0 +1,669 @@
+<%- include("../../views/partials/admin/header") %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Products - E-commerce</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Cropper.js CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+    <!-- SweetAlert2 CSS for Alerts -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+         .crop-container {
+            position: relative;
+            overflow: hidden;
+        }
+        .crop-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            max-width: none;
+        }
+        .image-preview {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: none;
+        }
+        .cropper-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+        }
+        .cropper-container {
+            background: #000000;
+            padding: 20px;
+            border-radius: 8px;
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            box-shadow: 0 4px 6px rgb(0 151 220);
+            /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .cropper-container img {
+            max-width: 100%;
+            max-height: calc(80vh - 100px);
+            margin-bottom: 20px;
+            border: 2px solid #4a5568;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .cropper-buttons {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .cropper-buttons button {
+            padding: 12px 24px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: white;
+            font-size: 16px;
+        }
+        .crop-button {
+            background-color: #48bb78;
+        }
+        .crop-button:hover {
+            background-color: #38a169;
+        }
+        .cancel-button {
+            background-color: #f56565;
+        }
+        .cancel-button:hover {
+            background-color: #e53e3e;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: #4299e1;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .submit-btn:hover {
+            background-color: #3182ce;
+        }
+        @media(max-width: 600px) {
+            .cropper-container {
+                padding: 10px;
+            }
+            .cropper-buttons button {
+                padding: 8px 16px;
+                margin: 0 5px;
+            }
+        }
+        .popup {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.95);
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            width: auto;
+            white-space: nowrap;
+        }
+        .popup.show {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+        .popup.success {
+            background-color: #10B981;
+        }
+        .popup.error {
+            background-color: #EF4444;
+        }
+        .popup.success:hover {
+            background-color: #059669;
+        }
+        .popup.error:hover {
+            background-color: #DC2626;
+        }
+        .icon-wrapper {
+            background-color: #ffffff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon {
+            width: 12px;
+            height: 12px;
+        }
+        .success .icon {
+            color: #10B981;
+        }
+        .error .icon {
+            color: #EF4444;
+        }
+        @media (max-width: 480px) {
+            .popup {
+                font-size: 12px;
+                padding: 4px 10px;
+            }
+            .icon-wrapper {
+                width: 18px;
+                height: 18px;
+            }
+            .icon {
+                width: 10px;
+                height: 10px;
+            }
+        }
+    </style>
+    
+</head>
+<body class="bg-gray-100">
+    <div id="successPopup" class="popup success">
+        <div class="icon-wrapper">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        Success! Action recorded
+    </div>
+
+    <div id="errorPopup" class="popup error">
+        <div class="icon-wrapper">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        Error! Action failed
+    </div>
+    <!-- .................................................... -->
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-2xl font-bold mb-6 text-center">Edit Product</h1>
+        <form id="addProductForm" name="addProductForm" class="max-w-6xl mx-auto bg-white shadow-md rounded px-4 py-6 mb-4" action="/admin/editProduct/<%=product._id%>" enctype="multipart/form-data">
+            <div class="flex flex-wrap -mx-2">
+                <div class="w-full md:w-1/2 px-2 mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
+                        Product Name
+                    </label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name" name="name" type="text" placeholder="Enter product name" title="Only letters are allowed" pattern="[A-Za-z\s]+" value="<%=product.productName%>">
+                </div>
+                <div class="w-full md:w-1/2 px-2 mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="salePrice">
+                       Sale Price($)
+                    </label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="salePrice" name="salePrice" type="number" step="0.01" placeholder="Enter product price" pattern="\d*" title="Only numbers are allowed" value="<%=product.salePrice%>">
+                </div>
+                <div class="w-full md:w-1/2 px-2 mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="regularPrice">
+                        Regular Price($)
+                    </label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="regularPrice" name="regularPrice" type="number" step="0.01" placeholder="Enter regular price" pattern="\d*" title="Only numbers are allowed" value="<%=product.regularPrice%>">
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
+                    Description
+                </label>
+                <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="description" name="description" placeholder="Enter product description" rows="3"><%=product.description%></textarea>
+            </div>
+            <div class="flex flex-wrap -mx-2 mb-4">
+                <div class="w-full md:w-1/2 px-2 mb-4 md:mb-0">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="category">
+                        Category
+                    </label>
+                    <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="category" name="category">
+                       
+                        
+                        <option value="<%=product.category.name%>"><%=product.category.name%></option>
+                        <!-- Add your category options here -->
+                        <%for(let i=0;i<cat.length;i++){%>
+                            <option value="<%=cat[i].name%>"><%=cat[i].name%></option>
+                            <%}%>
+              
+                    </select>
+                </div>
+                <div class="w-full md:w-1/2 px-2">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="quantity">
+                        Stock Quantity
+                    </label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="quantity" name="quantity" type="number" placeholder="Enter stock quantity" pattern="\d*" title="Only numbers are allowed" value="<%=product.quantity%>">
+                </div>
+            </div>
+            <div class="flex flex-wrap -mx-2 mb-4">
+                <div class="w-full md:w-1/2 px-2 mb-4 md:mb-0">
+                    <label class="flex items-center">
+                        <input 
+                            type="checkbox" 
+                            class="form-checkbox h-5 w-5 text-blue-600" 
+                            id="block-product" 
+                            name="block-product" 
+                            <% if (product.status === 'Blocked') { %>checked<% } %>
+                        >
+                        <span class="ml-2 text-gray-700">Block this product</span>
+                    </label>
+                </div>
+                <div class="w-full md:w-1/2 px-2">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="sizes">
+                        Sizes
+                    </label>
+                    <div class="grid grid-cols-2 gap-4" id="sizes">
+                        <% ['S', 'M', 'L', 'XL', 'XXL'].forEach(size => { %>
+                            <div>
+                                <label class="block text-gray-700 text-sm mb-1" for="size-<%= size.toLowerCase() %>"><%= size %></label>
+                                <input 
+                                    type="number" 
+                                    id="size-<%= size.toLowerCase() %>" 
+                                    name="size-<%= size.toLowerCase() %>" 
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                                    min="0" 
+                                    placeholder="Quantity"
+                                    value="<%= product.sizes[size] || 0 %>"
+                                >
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-wrap -mx-2 mb-4">
+                <div class="w-full md:w-1/3 px-2 mb-4 md:mb-0">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="material-type">
+                        Material/Cloth Type
+                    </label>
+                    <select 
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                        id="material" 
+                        name="material"
+                    >
+                        <option value="">Select Material</option>
+                        <% ['cotton', 'polyester', 'cotton-polyester-blend', 'organic-cotton', 'bamboo', 'rayon', 'jersey-knit'].forEach(material => { %>
+                            <option value="<%= material %>" <% if (product.material === material) { %>selected<% } %>><%= material.charAt(0).toUpperCase() + material.slice(1).replace(/-/g, ' ') %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="w-full md:w-1/3 px-2 mb-4 md:mb-0">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="fit-and-style">
+                        Fit and Style
+                    </label>
+                    <select 
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                        id="fit" 
+                        name="fit"
+                    >
+                        <option value="">Select Fit and Style</option>
+                        <% ['slim-fit', 'regular-fit', 'loose-fit', 'oversized', 'athletic-fit', 'unisex', 'crop-top', 'longline', 'v-neck', 'crew-neck', 'round-neck', 'polo', 'henley'].forEach(fit => { %>
+                            <option value="<%= fit %>" <% if (product.fit === fit) { %>selected<% } %>><%= fit.charAt(0).toUpperCase() + fit.slice(1).replace(/-/g, ' ') %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="w-full md:w-1/3 px-2 mb-4 md:mb-0">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="wash-care">
+                        Wash and Care Instructions
+                    </label>
+                    <select 
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                        id="wash" 
+                        name="wash"
+                    >
+                        <option value="">Select Wash and Care</option>
+                        <% ['machine-wash', 'hand-wash', 'tumble-dry', 'no-bleach', 'dry-clean', 'iron-safe'].forEach(wash => { %>
+                            <option value="<%= wash %>" <% if (product.wash === wash) { %>selected<% } %>><%= wash.charAt(0).toUpperCase() + wash.slice(1).replace(/-/g, ' ') %></option>
+                        <% }) %>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Product Images
+                </label>
+                <div class="flex flex-wrap -mx-2">
+                    <%for(let i=0;i< product.productImage.length;i++){%>
+                    <div class="w-full sm:w-1/2 md:w-1/4 px-2 mb-4">
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="image<%= i + 1 %>" name="image<%= i + 1 %>" type="file" accept="image/*" value="<%=product.productImage[i]%>"  required>
+                        <img id="preview<%= i + 1 %>" class="image-preview" src="/uploads/re-image/<%=product.productImage[i]%>" style="display: block; margin-top: 10px; max-width: 100%;">
+                    </div>
+                    <!-- ........................................... -->
+                 
+                    <!-- ................................................ -->
+                    <%}%>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit"  id="addproduct">
+                    Edit Product
+                </button>
+                <button class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Cropper Modal -->
+    <div id="cropperModal" class="cropper-modal">
+        <div class="cropper-container">
+            <img id="cropperImage" src="" alt="Crop Image">
+            <div class="cropper-buttons" style="display: block;">
+                <button type="button" class="crop-button" style="background-color: #00ce56;">Crop</button>
+                <button type="button" class="cancel-button" style="background-color: red;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cropper.js JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <!-- SweetAlert2 JS for Alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+ 
+
+    <script>
+        const cropperModal = document.getElementById('cropperModal');
+        const cropperImage = document.getElementById('cropperImage');
+        const cropButton = cropperModal.querySelector('.crop-button');
+        const cancelButton = cropperModal.querySelector('.cancel-button');
+
+        let currentCropper = null;
+        let currentPreviewId = null;
+        const croppedBlobs = {};
+
+        function openCropper(file, previewId) {
+            currentPreviewId = previewId;
+            cropperModal.style.display = 'flex';
+            cropperImage.src = URL.createObjectURL(file);
+
+            if (currentCropper) {
+                currentCropper.destroy();
+            }
+            currentCropper = new Cropper(cropperImage, {
+                aspectRatio: 1,
+                viewMode: 1,
+                background: false,
+                zoomable: true,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                minCropBoxWidth: 200, /* Updated option */
+                minCropBoxHeight: 200, /* Updated option */
+                responsive: true, /* Updated option */
+                guides: true, /* Updated option */
+            });
+        }
+
+        function handleImageSelection(event, previewId) {
+            const file = event.target.files[0];
+            if (file) {
+                openCropper(file, previewId);
+            }
+        }
+
+        ['image1', 'image2', 'image3', 'image4'].forEach((inputId, index) => {
+            document.getElementById(inputId).addEventListener('change', (event) => {
+                handleImageSelection(event, `preview${index + 1}`);
+            });
+        });
+
+        cropButton.addEventListener('click', () => {
+            if (currentCropper && currentPreviewId) {
+                currentCropper.getCroppedCanvas({
+                    width: 500,
+                    height: 500,
+                }).toBlob((blob) => {
+                    croppedBlobs[currentPreviewId] = blob;
+                    const previewImg = document.getElementById(currentPreviewId);
+                    previewImg.src = URL.createObjectURL(blob);
+                    previewImg.style.display = 'block';
+                    cropperModal.style.display = 'none';
+                    currentCropper.destroy();
+                    currentCropper = null;
+                    currentPreviewId = null;
+                }, 'image/jpeg');
+            }
+        });
+
+        cancelButton.addEventListener('click', () => {
+            cropperModal.style.display = 'none';
+            if (currentCropper) {
+                currentCropper.destroy();
+                currentCropper = null;
+            }
+            currentPreviewId = null;
+        });
+
+
+
+
+
+
+   // Display success popup with a custom message
+    function showSuccessPopup(message) {
+    const successPopup = document.getElementById('successPopup');
+    successPopup.innerText = message;
+    successPopup.classList.add('show');
+    setTimeout(() => {
+        successPopup.classList.remove('show');
+    }, 3000); // Display for 3 seconds
+}
+// Display error popup with a custom message
+function showErrorPopup(message) {
+    const errorPopup = document.getElementById('errorPopup');
+    errorPopup.innerText = message;
+    errorPopup.classList.add('show');
+    setTimeout(() => {
+        errorPopup.classList.remove('show');
+    }, 3000); // Display for 3 seconds
+}
+
+        document.getElementById('addproduct').addEventListener('click', async function(event) {
+            console.log("first")
+            event.preventDefault();
+
+            if (!validateForm()) {
+                return;
+            }
+
+            // Validate that all images are cropped;
+            // for (let i = 1; i <= 4; i++) {
+            //     if (!croppedBlobs[`preview${i}`]) {
+
+            //         showErrorPopup(`Please upload and crop Image ${i}`);
+            //         return;
+                  
+            //     }
+            // }
+            console.log("sec")
+            const formData = new FormData();
+
+            const name = document.getElementById('name').value;
+            const salePrice = document.getElementById('salePrice').value
+            const regularPrice = document.getElementById('regularPrice').value
+            const description = document.getElementById('description').value
+            const category = document.getElementById('category').value
+            // const quantity = document.getElementById('quantity').value
+            // const size = document.getElementById('product-size').value
+            const material = document.getElementById('material').value
+            const fit = document.getElementById('fit').value
+            const  wash = document.getElementById('wash').value
+            const image1 = document.getElementById('image1').files[0]; 
+            const image2 = document.getElementById('image2').files[0]; 
+            const image3 = document.getElementById('image3').files[0]; 
+            const image4 = document.getElementById('image4').files[0]; 
+
+           console.log('third')
+             // Collect form data
+            formData.append('name',name)
+            formData.append('salePrice',salePrice)
+            formData.append('regularPrice',regularPrice)
+            formData.append('description',description)
+            formData.append('category',category)
+            // formData.append('quantity',quantity)
+            // formData.append('size',size)
+            formData.append('material',material)
+            formData.append('fit',fit)
+            formData.append('wash',wash)
+            formData.append('image1',image1)
+            formData.append('image2',image2)
+            formData.append('image3',image3)
+            formData.append('image4',image4)
+           
+              // Append size quantities
+              const sizes = ['s', 'm', 'l', 'xl', 'xxl'];
+            sizes.forEach(size => {
+                const sizeQuantity = document.getElementById(`size-${size}`).value;
+                formData.append(`size-${size}`, sizeQuantity);
+            });
+
+
+
+             console.log("4")
+             const productId = "<%=product._id%>"
+
+            try  {
+                const response = await fetch(`/admin/ediProduct/${productId}`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                console.log("data sended to backend")
+                
+                if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'An error occurred while adding the product.');
+        }
+         // If the response is ok, show success message
+         showSuccessPopup(" ✔  Product updated successfully!");
+        setTimeout(() => {
+           window.location.href = "/admin/products"
+        }, 2000); // Reload after 2 seconds
+
+               
+    
+            } catch (error) {
+                showErrorPopup("something error",error.message);
+            }
+        });
+
+
+
+        function validateForm() {
+            clearErrorMessages();
+            const name = document.getElementById('name').value;
+            const description = document.getElementById('description').value;
+            const price = document.getElementById('salePrice').value;
+            const regularprice = document.getElementById('regularPrice').value;
+            const category = document.getElementById('category').value;
+            // const quantity = document.getElementById('quantity').value;
+            const material = document.getElementById('material').value
+            const fit = document.getElementById('fit').value
+            const wash = document.getElementById('wash').value
+            let isValid = true;
+
+            if (name.trim() === "") {
+                displayErrorMessage("name", "Please enter a product name.");
+                isValid = false;
+            }
+
+            if (description.trim() === "") {
+                displayErrorMessage("description", "Please enter a product description.");
+                isValid = false;
+            }
+
+            if (price.trim() === "" || parseFloat(price) <= 0) {
+                displayErrorMessage("salePrice", "Please enter a valid price.");
+                isValid = false;
+            }
+            if(regularprice.trim()==="" || parseFloat(regularprice)<=0){
+                displayErrorMessage("regularPrice","Please enter a valid regular price")
+                isValid = false ;
+            }
+
+            // if (category === "") {
+            //     displayErrorMessage("category", "Please select a category.");
+            //     isValid = false;
+            // }
+
+            // if (quantity.trim() === "" || parseInt(quantity) < 0) {
+            //     displayErrorMessage("quantity", "Please enter a valid quantity.");
+            //     isValid = false;
+            // }
+            if (material.trim() === "" || material==="Select Material") {
+                displayErrorMessage("material", "Please select a material.");
+                isValid = false;
+            }
+            if (fit.trim() === "" || fit==="Select Fit and Style") {
+                displayErrorMessage("fit", "Please select a fit");
+                isValid = false;
+            }
+            if (wash.trim() === "" || wash==="Select Wash and Care") {
+                displayErrorMessage("wash", "Please select a wash type");
+                isValid = false;
+            }
+            // Validate sizes
+            console.log("going for size validation")
+            const sizes = ['s', 'm', 'l', 'xl', 'xxl'];
+            let atLeastOneSizeEntered = false;
+            sizes.forEach(size => {
+                const sizeQuantity = document.getElementById(`size-${size}`).value;
+                if (sizeQuantity !== "" && parseInt(sizeQuantity) > 0) {
+                    atLeastOneSizeEntered = true;
+                }
+            });
+            if (!atLeastOneSizeEntered) {
+                displayErrorMessage("sizes", "Please enter a quantity for at least one size.");
+                isValid = false;
+            }
+
+
+            return isValid;
+        }
+
+        function displayErrorMessage(elementId, message) {
+            const element = document.getElementById(elementId);
+            const errorElement = document.createElement('div');
+            errorElement.className = 'text-red-500 text-xs mt-1';
+            errorElement.textContent = message;
+            element.parentNode.insertBefore(errorElement, element.nextSibling);
+        }
+
+        function clearErrorMessages() {
+            const errorElements = document.querySelectorAll('.text-red-500');
+            errorElements.forEach(element => element.remove());
+        }
+    </script>
+</body>
+</html>
+
+
+<%- include("../../views/partials/admin/footer") %>

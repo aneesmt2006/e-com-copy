@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Form</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto:300&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+
+    <style>
+      /* Fonts */
+      @import url("https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css");
+      @import url("https://fonts.googleapis.com/css?family=Roboto:300");
+
+      /* Wrapper & Utilities */
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Roboto", sans-serif;
+      }
+
+      .wrapper-login {
+        background: #ffffff;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 15px;
+      }
+
+      .box-container {
+        width: 64px;
+        height: 64px;
+        background: #092500;
+        box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2),
+          0 5px 5px 0 rgba(0, 0, 0, 0.24);
+        border-radius: 15px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        animation: in ease 1s forwards;
+      }
+
+      .plane {
+        font-size: 25px;
+        color: #c04600;
+        transition: all 1s ease;
+        opacity: 1;
+      }
+
+      /* Form Style */
+      .form {
+        padding: 20px;
+        display: none;
+        flex-direction: column;
+      }
+
+      .form input {
+        font-family: "Roboto", sans-serif;
+        outline: 0;
+        background: #f2f2f2;
+        width: 100%;
+        border: 0;
+        margin: 0 0 15px;
+        padding: 15px;
+        font-size: 14px;
+        display: none;
+      }
+
+      .button {
+        font-family: "Roboto", sans-serif;
+        text-transform: uppercase;
+        outline: 0;
+        background: #e3e3e3;
+        width: 100%;
+        border: 0;
+        padding: 15px;
+        color: #ffffff;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: none;
+      }
+
+      .button:hover,
+      .form button:active,
+      .form button:focus {
+        background: #e87f00;
+      }
+
+      /* Animation Classes */
+      .active {
+        cursor: default;
+        animation: open 1.5s ease forwards;
+      }
+
+      /* Animation Keyframes */
+      @keyframes open {
+        0% {
+          width: 64px;
+          height: 64px;
+        }
+        50% {
+          width: 320px;
+          height: 64px;
+        }
+        100% {
+          width: 100%;
+          max-width: 400px;
+          height: 250px;
+        }
+      }
+
+      @keyframes in {
+        0% {
+          transform: translateY(-500px);
+        }
+        60% {
+          transform: translateY(0px);
+        }
+        80% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0px);
+        }
+      }
+
+      /* Responsive Styling */
+      @media screen and (max-width: 600px) {
+        .form {
+          padding: 20px;
+        }
+
+        .form input {
+          padding: 12px;
+          font-size: 13px;
+        }
+
+        .button {
+          padding: 12px;
+        }
+
+        .box-container {
+          width: 100%;
+          max-width: 320px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper-login">
+      <div class="box-container">
+        <div class="plane">
+          <i class="fa fa-user"></i>
+        </div>
+        <div class="form">
+          <form action="/admin/adminlogin" method="post">
+            <input
+              style="border-radius: 11px"
+              type="email"
+              placeholder="email"
+              name="email"
+              id="email"
+            />
+            <input
+              style="border-radius: 11px"
+              type="password"
+              placeholder="password"
+              name="password"
+              id="pass"
+            />
+            <button  style="border-radius: 11px; color: #091000" class="button" type="submit">Login</button>
+            <!-- <div style="border-radius: 11px; color: #091000" class="button">
+              Login
+            </div> -->
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        $(".box-container").click(function () {
+          $(this).addClass("active");
+          $(".plane").remove();
+          $(".form").delay(1000).fadeIn(700);
+          $(".form input").delay(1000).fadeIn(700);
+          $(".button").delay(1000).fadeIn(700);
+        });
+      });
+    </script>
+  </body>
+</html>

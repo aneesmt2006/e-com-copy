@@ -1,0 +1,640 @@
+<%-include("../../views/partials/user/header.ejs")%>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Orders | YourStore</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <style>
+    .active {
+      background-color: #ea580c;
+      color: white;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 500px;
+      border-radius: 8px;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .return-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+  }
+  .return-modal:not(.hidden) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .return-modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  .return-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .return-modal-close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .return-modal-close:hover,
+  .return-modal-close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .popup {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.95);
+      color: #ffffff;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 14px;
+      font-weight: 400;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      max-width: 90%;
+      width: auto;
+      white-space: nowrap;
+    }
+    .popup.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+      z-index: 1000;
+    }
+    .popup.success {
+      background-color: #049b06f3;
+      z-index: 1000;
+    }
+    .popup.error {
+      background-color: #000000;
+      z-index: 1000;
+    }
+    .popup.success:hover {
+      background-color: #059669;
+    }
+    .popup.error:hover {
+      background-color: #dc2626;
+    }
+  </style>
+</head>
+<div id="successPopup" class="popup success">
+  <div class="icon-wrapper">
+    <svg
+      class="icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M20 6L9 17L4 12"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </div>
+  Success! Action recorded
+</div>
+
+<div id="errorPopup" class="popup error">
+  <div class="icon-wrapper">
+    <svg
+      class="icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M18 6L6 18M6 6L18 18"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </div>
+  Error! Action failed
+</div>
+<!--....................................POP UP MESSSAGE ............................................................. -->
+<div class="min-h-screen flex flex-col md:flex-row">
+   <!-- Sidebar (unchanged) -->
+   <nav class="w-full md:w-96 bg-orange-600 text-white p-6 md:pt-24">
+    <ul class="space-y-2">
+        <!-- <li><a href="/profile" class="block py-2 px-4 rounded transition duration-200 hover:bg-orange-500 text-lg" style="margin-top: 10px;">Dashboard</a></li> -->
+        <li><a href="/orders" class="block py-2 px-4 rounded transition duration-200 hover:bg-orange-500 text-lg" style="margin-top: 50px;">Orders</a></li>
+        <li><a href="/address" class="block py-2 px-4 rounded transition duration-200 hover:bg-orange-500 text-lg">Addresses</a></li>
+        <li><a href="/account" class="block py-2 px-4 rounded transition duration-200 hover:bg-orange-500 text-lg">Account Details</a></li>
+        <li><a href="/wishlist" class="block py-2 px-4 rounded transition duration-200 hover:bg-orange-500 text-lg">Wishlist</a></li>
+        <li><a href="/wallet" class="block py-2 px-4 rounded transition duration-200 hover:bg-orange-500 text-lg">wallet</a></li>
+        <li><a href="/logout" class="block py-2 px-4 rounded transition duration-200 hover:bg-orange-500 text-lg">logout</a></li>
+    </ul>
+</nav>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-4 md:p-8 overflow-auto" style="margin-top: 85px">
+    <div class="max-w-6xl mx-auto">
+      <h1 class="text-3xl font-bold mb-8"></h1>
+      <%if(orders.length>0){%>
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <!-- Order Card 1 -->
+        <% orders.forEach(order => { %>
+          <div class="bg-white rounded-lg shadow-md overflow mb-6">
+            <div class="p-6">
+              <div class="flex items-center mb-4">
+                <img
+                  src="/uploads/re-image/<%= order.orderedItems[0].product.productImage[1] %>"
+                  height="80"
+                  width="80"
+                  alt="Product"
+                  class="w-20 h-20 object-cover rounded-md mr-4"
+                />
+                <div>
+                  <h2 class="text-xl font-semibold">
+                    Order #<%= order.orderId.slice(0, 10) %>
+                  </h2>
+                  <span
+                    class="px-2 py-1 text-xs font-semibold rounded-full <%= order.status === 'Delivered' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800' %>"
+                  >
+                    <%= order.status %>
+                  </span>
+                </div>
+              </div>
+              <p class="text-gray-600 mb-2">
+                Date: <%= new Date(order.createdOn).toDateString() %>
+              </p>
+              <p class="text-gray-600 mb-2">
+                Total: $<%= order.finalAmount.toFixed(2) %>
+              </p>
+              <p class="text-gray-600 mb-4">
+                Items: <% order.orderedItems.forEach(item => { %>
+                <span><%= item.product.productName %> (x<%= item.quantity %>)</span><% if (item !== order.orderedItems[order.orderedItems.length - 1]) { %>, <% } %> <% }) %>
+              </p>
+              <div class="flex justify-between items-center mt-4">
+                <button
+                  class="text-orange-600 hover:text-orange-700 font-medium view-details"
+                  data-order="<%= JSON.stringify(order) %>"
+                >
+                  View Details
+                </button>
+                <div class="flex space-x-2">
+                  <% if (order.status === 'Placed' || order.status === 'Shipped') { %>
+                    <button class="flex items-center text-red-500 hover:text-red-600 border border-red-500 hover:bg-red-50 rounded-full px-3 py-1 transition-colors duration-200" title="Cancel Order" id="cancelOrderBtn" data-order-id="<%= order._id %>">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                      </svg>
+                      <span class="text-sm font-medium">Cancel</span>
+                    </button>
+                  <% } %>
+                  <% if (order.status === 'Delivered' && (new Date() - new Date(order.createdOn)) / (1000 * 60 * 60 * 24) <= 7) { %>
+                    <button class="flex items-center text-blue-500 hover:text-blue-600 border border-blue-500 hover:bg-blue-50 rounded-full px-3 py-1 transition-colors duration-200 return-order-btn" title="Return Order" data-order-id="<%= order._id %>">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                        <path d="M3 3v5h5"></path>
+                      </svg>
+                      <span class="text-sm font-medium">Return</span>
+                    </button>
+                  <% } %>
+                  <% if (order.status === 'Pending Payment') { %>
+                    <button class="flex items-center text-green-500 hover:text-green-600 border border-green-500 hover:bg-green-50 rounded-full px-3 py-1 transition-colors duration-200" title="Continue Payment" onclick="continuePayment('<%= order._id %>')">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                        <path d="M3 3v5h5"></path>
+                      </svg>
+                      <span class="text-sm font-medium">Retry Payment</span>
+                    </button>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+        
+      </div>
+<%}else{%>
+  
+<h1 style="font-size: 25px;">  No Orders Found !</h1>
+<p style="font-size: 15px; padding-left: 35px;">Go to shop..... <a href="/shop" style="color: blue;">Click here</a></p>
+  <%}%>
+      <!-- Pagination -->
+    </div>
+  </main>
+</div>
+<!-- Modal -->
+<div id="orderModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2 id="modalTitle" class="text-2xl font-bold mb-4"></h2>
+    <div id="modalContent"></div>
+    <div class="mt-6 flex justify-end">
+      <button id="downloadInvoice" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Download Invoice
+      </button>
+    </div>
+  </div>
+</div>
+<!-- Return Request Modal -->
+<!-- Return Request Modal -->
+<div id="returnRequestModal" class="return-modal hidden">
+  <div class="return-modal-content">
+    <div class="return-modal-header">
+      <h3 class="text-xl font-semibold text-gray-900">Return Request</h3>
+      <span class="return-modal-close">&times;</span>
+    </div>
+    <form id="returnRequestForm" class="space-y-6">
+      <div>
+        <label for="returnReason" class="block text-sm font-medium text-gray-700">Reason for Return</label>
+        <select id="returnReason" name="returnReason" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+          <option value="">Select a reason</option>
+          <option value="Wrong size">Wrong size</option>
+          <option value="Defective product">Defective product</option>
+          <option value="Not as described">Not as described</option>
+          <option value="Changed mind">Changed mind</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div>
+        <label for="returnComment" class="block text-sm font-medium text-gray-700">Additional Comments</label>
+        <textarea id="returnComment" name="returnComment" rows="3" class="mt-1 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+      </div>
+      <div class="flex justify-end space-x-3">
+        <button type="button" id="cancelReturnRequest" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">
+          Cancel
+        </button>
+        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          Submit Request
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%-include("../../views/partials/user/footer.ejs")%>
+
+<script>
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  const returnButtons = document.querySelectorAll('.return-order-btn');
+  const returnRequestModal = document.getElementById('returnRequestModal');
+  const returnRequestForm = document.getElementById('returnRequestForm');
+  const cancelReturnRequestButton = document.getElementById('cancelReturnRequest');
+  const closeModalButton = returnRequestModal.querySelector('.return-modal-close');
+
+  if (!returnRequestModal) {
+    console.error('Return request modal not found in the DOM');
+    return;
+  }
+
+  returnButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      const orderId = this.dataset.orderId;
+      openReturnModal(orderId);
+    });
+  });
+
+  if (cancelReturnRequestButton) {
+    cancelReturnRequestButton.addEventListener('click', closeReturnModal);
+  } else {
+    console.error('Cancel return request button not found');
+  }
+
+  if (closeModalButton) {
+    closeModalButton.addEventListener('click', closeReturnModal);
+  } else {
+    console.error('Close modal button not found');
+  }
+
+  window.addEventListener('click', function(event) {
+    if (event.target == returnRequestModal) {
+      closeReturnModal();
+    }
+  });
+
+  function openReturnModal(orderId) {
+    console.log('Opening return modal for order:', orderId);
+    returnRequestModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
+    if (returnRequestForm) {
+      returnRequestForm.dataset.orderId = orderId;
+    }
+  }
+
+  function closeReturnModal() {
+    console.log('Closing return modal');
+    returnRequestModal.classList.add('hidden');
+    document.body.style.overflow = ''; // Restore scrolling
+    if (returnRequestForm) {
+      returnRequestForm.reset();
+    }
+  }
+
+  if (returnRequestForm) {
+    returnRequestForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const orderId = this.dataset.orderId;
+      const reason = document.getElementById('returnReason').value;
+      const comment = document.getElementById('returnComment').value;
+
+      if (!reason) {
+        showErrorPopup('Please select a return reason');
+        return;
+      }
+
+      try {
+        const response = await axios.post('/returnOrder', {
+          orderId,
+          reason,
+          comment
+        });
+
+        if (response.data.success) {
+          showSuccessPopup('Return request submitted successfully');
+          closeReturnModal();
+          // Update the UI to show return request sent
+          const returnButton = document.querySelector(`.return-order-btn[data-order-id="${orderId}"]`);
+          if (returnButton) {
+            returnButton.textContent = 'Return Request Sent';
+            returnButton.disabled = true;
+            returnButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+            returnButton.classList.remove('text-blue-500', 'hover:text-blue-600', 'border-blue-500', 'hover:bg-blue-50');
+          }
+        } else {
+          showErrorPopup('Failed to submit return request');
+        }
+      } catch (error) {
+        console.error('Error submitting return request:', error);
+        showErrorPopup('An error occurred while submitting the return request');
+      }
+    });
+  } else {
+    console.error('Return request form not found');
+  }
+});
+
+console.log('Return order script loaded');
+
+
+
+
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById("orderModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalContent = document.getElementById("modalContent");
+    const viewDetailsButtons = document.querySelectorAll(".view-details");
+    const closeBtn = document.querySelector(".close");
+
+    viewDetailsButtons.forEach((button) => {
+      button.addEventListener("click", function (e) {
+        e.preventDefault();
+        const orderData = JSON.parse(this.getAttribute("data-order"));
+        openModal(orderData);
+      });
+    });
+
+    closeBtn.addEventListener("click", closeModal);
+
+    window.addEventListener("click", function (event) {
+      if (event.target == modal) {
+        closeModal();
+      }
+    });
+
+    const downloadInvoiceBtn = document.getElementById("downloadInvoice");
+
+  downloadInvoiceBtn.addEventListener("click", function() {
+    const orderId = this.getAttribute("data-order-id");
+    downloadInvoice(orderId);
+  });
+
+  async function downloadInvoice(orderId) {
+    axios({
+      url: `/generate-invoice/${orderId}`,
+      method: 'GET',
+      responseType: 'blob', // Important
+    }).then((response) => {
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `invoice-${orderId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }).catch((error) => {
+      console.error('Error downloading invoice:', error);
+      showErrorPopup('Error downloading invoice. Please try again.');
+    });
+  }
+
+
+    function openModal(order) {
+      modalTitle.textContent = `Order #${order.orderId.slice(0, 10)} Details`;
+
+      // Populate modal content dynamically
+      const itemsHtml = order.orderedItems
+        .map(
+          (item) => `
+                    <li>
+                        ${item.product.productName}-${item.size} - Quantity: ${item.quantity}, Price: $${item.price}(without coupon offer) <br>
+                        
+                    </li>`
+        )
+        .join("");
+
+      modalContent.innerHTML = `
+                <p><strong>Order Date:</strong> ${new Date(
+                  order.createdOn
+                ).toDateString()}</p>
+                <p><strong>Status:</strong> ${order.status}</p>
+                <p><strong>Total:</strong> $${order.finalAmount.toFixed(2)}</p>
+                <p><strong>Total Discount of Product:</strong> $${
+                  order.discount
+                }</p>
+                <p><strong>Coupon Discount:</strong> $${order.couponOffer}</p>
+                <p><strong>Payment Method:</strong> ${order.paymentMethod}</p>
+                <h3 class="text-lg font-semibold mt-4 mb-2">Items:</h3>
+                <ul class="list-disc pl-5">
+                    ${itemsHtml}
+                </ul>
+                <h3 class="text-lg font-semibold mt-4 mb-2">Shipping Address:</h3>
+                <p>${order.address.streetAddress}, ${order.address.city}, ${
+        order.address.state
+      }, ${order.address.pincode}</p>
+            `;
+      
+      // Add the order ID to the download button
+    const downloadInvoiceBtn = document.getElementById("downloadInvoice");
+    downloadInvoiceBtn.setAttribute("data-order-id", order._id);
+
+      modal.style.display = "block";
+    }
+
+    function closeModal() {
+      modal.style.display = "none";
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log("order cancelling function triggering....")
+    const cancelButtons = document.querySelectorAll('#cancelOrderBtn');
+
+    cancelButtons.forEach((button) => {
+        button.addEventListener('click', async (event) => {
+            const orderId = button.dataset.orderId; // Ensure `data-order-id` is added to the button
+            try {
+                const response = await axios.put(`/orderCancelling/${orderId}`);
+                showSuccessPopup(response.data.message); // Notify the user of the cancellation
+                location.reload(); // Reload the page to reflect updated orders
+            } catch (error) {
+                console.error('Error cancelling order:', error);
+                showErrorPopup(error.response?.data?.message || "Failed to cancel the order.");
+            }
+        });
+    });
+});
+
+//............................................RETURN ORDER...................................................
+
+
+
+// .......................................................................................................................
+
+
+
+
+async function continuePayment(orderId) {
+  console.log(orderId);
+  if (orderId) {
+    try {
+      const response = await axios.post(`/retry-payment?orderId=${orderId}`);
+      console.log(response)
+
+      if(response){
+      const razorpayKey = response.data.razorpayKey;
+      const orderId = response.data.orderId;
+
+
+      const options = {
+          key: razorpayKey,
+          amount: response.data.amount,
+          currency: 'INR',
+          name: 'CUST E-commerce',
+          description: 'Order Payment',
+          order_id: orderId,
+          handler: async (paymentResponse) => {
+            try {
+              console.log("res>>>>>",paymentResponse)
+              const verifyResponse = await axios.post('/verifyPayment-retry', {
+                razorpayPaymentId: paymentResponse.razorpay_payment_id,
+                razorpayOrderId: response.data.id,
+                razorpaySignature: paymentResponse.razorpay_signature,
+              });
+              window.location.href = `/orderConfirm/${verifyResponse.data.razorpayOrderId}`;
+            } catch (error) {
+              console.error("Payment verification failed:", error);
+              showErrorPopup(" Retry .. Payment verification failed.");
+            }
+          },
+          prefill: {
+            name: 'Anees',
+            email: 'anees@example.com',
+            contact: '9999999999',
+          },
+          theme: {
+            color: '#3399cc',
+          },
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+      }
+    } catch (error) {
+      console.error("Error in continuePayment:", error.message);
+    }
+  }
+}
+
+ // ---------------------------------- Popup Messages ----------------------------------
+ function showSuccessPopup(message) {
+    const successPopup = document.getElementById('successPopup');
+    successPopup.innerText = message;
+    successPopup.classList.add('show');
+    setTimeout(() => {
+      successPopup.classList.remove('show');
+    }, 3000);
+  }
+
+  function showErrorPopup(message) {
+    const errorPopup = document.getElementById('errorPopup');
+    errorPopup.innerText = message;
+    errorPopup.classList.add('show');
+    setTimeout(() => {
+      errorPopup.classList.remove('show');
+    }, 3000);
+  }
+
+</script>

@@ -1,0 +1,782 @@
+<%-include("../../views/partials/user/header.ejs")%>
+<head>
+    <style>
+
+    .product-action-details {
+        max-width: 100%;
+    }
+    
+    .product-details-action form {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .details-cart {
+        width: 100%;
+    }
+
+    .button-container {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        gap: 10px;
+    }
+
+    .btn.theme-btn {
+        flex: 1;
+        min-width: 120px;
+    }
+
+    .add-to-cart-btn {
+        background-color: yellow;
+        color: black;
+    }
+
+    @media (max-width: 576px) {
+        .button-container {
+            flex-direction: column;
+        }
+
+        .btn.theme-btn {
+            width: 100%;
+        }
+    }
+    
+    .popup {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.95);
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 400;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            width: auto;
+            white-space: nowrap;
+        }
+        .popup.show {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+            z-index: 1000;
+        }
+        .popup.success {
+            background-color: #049b06f3;
+            z-index: 1000;
+        }
+        .popup.error {
+            background-color: #000000;
+            z-index: 1000;
+        }
+        .popup.success:hover {
+            background-color: #059669;
+        }
+        .popup.error:hover {
+            background-color: #DC2626;
+        }
+        .icon-wrapper {
+            background-color: #ffffff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon {
+            width: 12px;
+            height: 12px;
+        }
+        .success .icon {
+            color: #006644;
+        }
+        .error .icon {
+            color: #EF4444;
+        }
+        @media (max-width: 480px) {
+            .popup {
+                font-size: 12px;
+                padding: 4px 10px;
+            }
+            .icon-wrapper {
+                width: 18px;
+                height: 18px;
+            }
+            .icon {
+                width: 10px;
+                height: 10px;
+            }
+        }
+        .limited-stock a {
+    color: red;
+    font-weight: bold;
+}
+.text-danger {
+    color: red;
+}
+
+.size-item.active {
+    border-bottom-color: #ff0000 !important; /* Change this to your preferred underline color */
+}
+
+.size-item:hover {
+    border-bottom-color: #000000;
+}
+
+
+
+        
+
+
+</style>
+<!-- <script src="https://cdn.tailwindcss.com"> </script> -->
+</head>
+<body>
+    <div id="successPopup" class="popup success">
+        <div class="icon-wrapper">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        Success! Action recorded
+    </div>
+    
+    <div id="errorPopup" class="popup error">
+        <div class="icon-wrapper">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        Error! Action failed
+    </div> 
+    <audio id="successSound" src="/audio/messenger-notification.wav" preload="auto" style="display: none;"></audio>
+    <audio id="errorSound" class="hidden" src="/audio/discord-notification-connect-fx.wav" preload="auto"></audio>
+    <!-- ....................................................................................................................
+
+ <main>
+ <!- breadcrumb-area-start -->
+  <section class="breadcrumb-area"  style="background-color: #062332;">
+    <div class="container">
+        <div class="row">
+            <div class="col-xl-12">
+                <div class="breadcrumb-text text-center" >
+                    <h1 style="color: white;">Our Shop</h1>
+                    <ul class="breadcrumb-menu">
+                        <li><a href="/">home</a></li>
+                        <li><span>shop details</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- breadcrumb-area-end -->
+
+<!-- shop-area start -->
+<section class="shop-details-area pt-100 pb-100">
+    <div class="container">
+        <div class="row">
+            <div class="col-xl-6 col-lg-4">
+                <div class="product-details-img mb-10">
+                    <div class="tab-content" id="myTabContentpro">
+                        <div class="tab-pane fade show active" id="home" role="tabpanel">
+                            <div class="product-large-img">
+                                
+                                <img src="/uploads/re-image/<%= products.productImage[0] %>" alt=""  class="product-image">
+                               
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="profile" role="tabpanel">
+                            <div class="product-large-img">
+                                <img src="/uploads/re-image/<%= products.productImage[1] %>" alt=""  class="product-image">
+                                
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="profile1" role="tabpanel">
+                            <div class="product-large-img">
+                                <img src="/uploads/re-image/<%= products.productImage[2] %>" alt=""  class="product-image">
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="profile2" role="tabpanel">
+                            <div class="product-large-img">
+                                <img src="/uploads/re-image/<%= products.productImage[3] %>" alt=""  class="product-image">
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+                <div id="zoom-lens"></div>
+                    <div id="zoom-result"></div>
+                <div class="shop-thumb-tab mb-30">
+                    <ul class="nav" id="myTab2" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-selected="true"><img
+                                    src="/uploads/re-image/<%= products.productImage[0] %>" alt=""> </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-selected="false"><img
+                                    src="/uploads/re-image/<%= products.productImage[1] %>" alt=""></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="profile-tab2" data-toggle="tab" href="#profile1" role="tab" aria-selected="false"><img
+                                    src="/uploads/re-image/<%= products.productImage[2] %>" alt=""></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="profile-tab2" data-toggle="tab" href="#profile2" role="tab" aria-selected="false"><img
+                                    src="/uploads/re-image/<%= products.productImage[3] %>" alt=""></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-xl-6 col-lg-8">
+                <div class="product-details mb-30 pl-30">
+                    <div class="details-cat mb-20">
+                        <a href="#"><%=products.productName%>,</a>
+                        <a href="#"><%=products.category.name%></a>
+                    </div>
+                    <h2 class="pro-details-title mb-15" style="font-size: 18px"><%=products.description%></h2>
+                    <div class="details-price mb-20">
+                        <%if(effectiveOffer){%>
+                        <span>$<%=salePrice%>.00</span>
+                        <%}else{%>
+                            <span>$<%=products.regularPrice%>.00</span>
+                            <%}%>
+
+                            <%if(effectiveOffer){%>
+                        <span class="old-price">$<%=products.regularPrice%>.00</span>
+                        <h6 style="color: green;"><%=effectiveOffer%>% OFF</h6>
+                        <%}%>
+                    </div>
+                    <div class="product-variant">
+
+                        <div class="product-color variant-item" style="display: none;">
+                            <div class="variant-name">
+                                <span>Colors</span>
+                            </div>
+                            <ul class="shop-link shop-color" style="display: none;">
+                                <li><a href="shop.html"><span class="blue"></span></a></li>
+                                <li><a href="shop.html"><span class="green"></span> </a></li>
+                                <li><a href="shop.html"><span class="orange"></span> </a></li>
+                                <li><a href="shop.html"><span class="navy"></span> </a></li>
+                                <li><a href="shop.html"><span class="pinkish"></span> </a></li>
+                                <li><a href="shop.html"><span class="vista"></span> </a></li>
+                            </ul>
+                        </div>
+                        <div class="product-size variant-item">
+                            <div class="variant-name">
+                                <span>Size</span>
+                            </div>
+                            <ul class="shop-link shop-size">
+                                <% for (let [size, quantity] of Object.entries(products.sizes)) { %>
+                                    <li class="getsize size-item <%= quantity < 10 && quantity !== 0 ? 'limited-stock' : '' %>"
+                                        data-size="<%= size %>"
+                                        style="margin-inline-start: 10px; font-weight: 45px; margin-right: 20px; cursor: pointer; border-bottom: 2px solid transparent;">
+                                        <%= size.toUpperCase() %> (<%= quantity %>)
+                                        <% if (quantity < 10 && quantity > 0) { %>
+                                            <span class="text-danger" style="font-size: 12px;"> - Limited Stock</span>
+                                        <% } %>
+                                    </li>
+                                <% } %>
+                            </ul>
+                            <div id="stockStatus" class="stock-status"></div>
+                        </div>
+
+                        <div class="product-desc variant-item">
+                            <p style="font-size: medium;">
+                                <%=products.material%>,<%=products.fit%>,<br>
+                                <%=products.description%>
+                            .</p>
+                        </div>
+
+                        <div class="product-info-list variant-item">
+                            <ul>
+                                <li><span>Material:</span> <%=products.material%></li>
+                                <li><span>Washable:</span> <%=products.wash%> </li>
+                                <li><span>Style:</span><%=products.fit%></li>
+                            </ul>
+                        </div>
+
+                  
+                        <div class="product-action-details variant-item">
+                            <div class="product-details-action">
+                               
+                                   <!-- product features  -->
+                            
+                                   <!-- <div class="hidden md:block">
+                                    <h3 class="text-lg font-semibold text-orange-600 mb-4">Product Features</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="flex items-center space-x-3 p-3 bg-orange-100 rounded-md">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                                            </svg>
+                                            <span class="text-sm font-medium text-orange-700">Free Delivery Available</span>
+                                        </div>
+                                        <div class="flex items-center space-x-3 p-3 bg-orange-100 rounded-md">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                            </svg>
+                                            <span class="text-sm font-medium text-orange-700">30-Day Return Policy</span>
+                                        </div>
+                                        <div class="flex items-center space-x-3 p-3 bg-orange-100 rounded-md">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span class="text-sm font-medium text-orange-700">Secure Wallet Payment</span>
+                                        </div>
+                                        <div class="flex items-center space-x-3 p-3 bg-orange-100 rounded-md">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                            </svg>
+                                            <span class="text-sm font-medium text-orange-700">Cash on Delivery</span>
+                                        </div>
+                                    </div>
+                                </div> -->
+                                   
+
+                                    <!-- end product fetuers -->
+                                    <form id="addToCartForm" action="">
+                                        <input type="hidden" name="productId" value="<%= products._id %>">  
+                                        <div class="details-cart mt-40">
+                                          <div class="button-container">
+                                            <button class="btn theme-btn" type="button" style="border-radius: 20px;background-color: green;">purchase now</button>
+                                           
+                                              <!-- Change the button to "Go to Cart" if the product is in the cart -->
+                                             
+                                        
+                                              <!-- Keep the "Add to Cart" button if the product is not in the cart -->
+                                              <button class="btn theme-btn add-to-cart-btn" type="button" onclick="addToCart()" style="border-radius: 20px;background-color: #ffba00;">Add to Cart</button>
+                                        
+                                          </div>
+                                        </div>
+                                      </form>
+                                      
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-50">
+            <div class="col-xl-8 col-lg-8">
+                <div class="product-review">
+                    <ul class="nav review-tab" id="myTabproduct" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="home-tab6" data-toggle="tab" href="#home6" role="tab" aria-controls="home"
+                                aria-selected="true" style="border-radius: 20px;">Description </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="profile-tab6" data-toggle="tab" href="#profile6" role="tab" aria-controls="profile"
+                                aria-selected="false" style="border-radius: 20px;">Reviews (2)</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="myTabContent2">
+                        <div class="tab-pane fade show active" id="home6" role="tabpanel" aria-labelledby="home-tab6">
+                            <div class="desc-text" style="border-radius: 30px;
+                            border: 1px solid;
+                            border-color: black;">
+                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+                                aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+                                occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis
+                                unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab
+                                illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+                                <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui
+                                ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur,
+                                adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.</p>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="profile6" role="tabpanel" aria-labelledby="profile-tab6">
+                            <div class="desc-text review-text">
+                                <div class="product-commnets">
+                                    <div class="product-commnets-list mb-25 pb-15">
+                                        <div class="pro-comments-img">
+                                            <img src="img/product/comments/01.png" alt="">
+                                        </div>
+                                        <div class="pro-commnets-text">
+                                            <h4>Roger West -
+                                                <span>June 5, 2018</span>
+                                            </h4>
+                                            <div class="pro-rating">
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                            </div>
+                                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
+                                                incididunt
+                                                ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+                                                exercitation.</p>
+                                        </div>
+                                    </div>
+                                    <div class="product-commnets-list mb-25 pb-15">
+                                        <div class="pro-comments-img">
+                                            <img src="img/product/comments/02.png" alt="">
+                                        </div>
+                                        <div class="pro-commnets-text">
+                                            <h4>Roger West -
+                                                <span>June 5, 2018</span>
+                                            </h4>
+                                            <div class="pro-rating">
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                            </div>
+                                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
+                                                incididunt
+                                                ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+                                                exercitation.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="review-box mt-50">
+                                    <h4>Add a Review</h4>
+                                    <div class="your-rating mb-40">
+                                        <span>Your Rating:</span>
+                                        <div class="rating-list">
+                                            <a href="#">
+                                                <i class="far fa-star"></i>
+                                            </a>
+                                            <a href="#">
+                                                <i class="far fa-star"></i>
+                                            </a>
+                                            <a href="#">
+                                                <i class="far fa-star"></i>
+                                            </a>
+                                            <a href="#">
+                                                <i class="far fa-star"></i>
+                                            </a>
+                                            <a href="#">
+                                                <i class="far fa-star"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <form class="review-form" action="#">
+                                        <div class="row">
+                                            <div class="col-xl-12">
+                                                <label for="message">YOUR REVIEW</label>
+                                                <textarea name="message" id="message" cols="30" rows="10"></textarea>
+                                            </div>
+                                            <div class="col-xl-6">
+                                                <label for="r-name">Name</label>
+                                                <input type="text" id="r-name">
+                                            </div>
+                                            <div class="col-xl-6">
+                                                <label for="r-email">Email</label>
+                                                <input type="email" id="r-email">
+                                            </div>
+                                            <div class="col-xl-12">
+                                                <button class="btn theme-btn">Add your Review</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-4 col-lg-4">
+                <div class="pro-details-banner">
+                    <a href="/shop"><img height="400px" width="400px" src="/img/slider/stand.jpeg.jpg" alt=""></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- shop-area end -->
+
+    <!-- product-area start -->
+    <%if(relatedProducts.length>0){%>
+    <section class="product-area pb-100">
+        <div class="container">
+          <div class="row">
+            <div class="col-xl-12">
+              <div class="area-title text-center mb-50">
+                <h2>Related Products</h2>
+                <p>Browse the huge variety of our products</p>
+              </div>
+            </div>
+          </div>
+          <div class="product-slider-2 owl-carousel">
+          
+            <% relatedProducts.forEach(function(product) { %>
+              <div class="pro-item">
+                <div class="product-wrapper">
+                  <div class="product-img mb-25">
+                    <a href="/productDetails?id=<%= product._id %>">
+                      <img src="/uploads/re-image/<%= product.productImage[0] %>" alt="">
+                      <img class="secondary-img" src="/uploads/re-image/<%= product.productImage[1] %>" alt="">
+                    </a>
+                    <div class="product-action text-center">
+                      <a href="#" title="Shopping Cart">
+                        <i class="flaticon-shopping-cart"></i>
+                      </a>
+                      <a href="#" title="Quick View">
+                        <i class="flaticon-eye"></i>
+                      </a>
+                      <a href="#" data-toggle="tooltip" data-placement="right" title="Compare">
+                        <i class="flaticon-compare"></i>
+                      </a>
+                    </div>
+                  </div>
+                  <div class="product-content">
+                    <div class="pro-cat mb-10">
+                      <a href="/shop?category=<%= product.category._id %>"><%= product.category.name %>, </a>
+                      <a href="/shop?fit=<%= product.fit %>"><%= product.fit %></a>
+                    </div>
+                    <h4>
+                      <a href="/productDetails?id=<%= product._id %>"><%= product.productName %></a>
+                    </h4>
+                    <div class="product-meta">
+                      <div class="pro-price">
+                        <span>$<%= product.salePrice %>.00</span>
+                        <span class="old-price">$<%= product.regularPrice %>.00</span>
+                      </div>
+                    </div>
+                    <div class="product-wishlist" >
+                      <a href="#"><i class="far fa-heart" title="Wishlist"></i></a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% }); %>
+          
+          </div>
+        </div>
+      </section>
+      <%}%>
+      
+      
+</main>
+
+</body>
+<%-include("../../views/partials/user/footer.ejs")%>
+
+
+
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sizeItems = document.querySelectorAll('.size-item');
+    
+    sizeItems.forEach(item => {
+        item.addEventListener('click', function() {
+            // Remove active class from all items
+            sizeItems.forEach(i => i.classList.remove('active'));
+            
+            // Add active class to clicked item
+            this.classList.add('active');
+            
+            // You can also store the selected size if needed
+            const selectedSize = this.dataset.size;
+            console.log('Selected size:', selectedSize);
+            
+            // Here you can add any additional logic you need when a size is selected
+        });
+    });
+});
+
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const sizes = <%- JSON.stringify(products.sizes) %>; // Pass sizes object to JavaScript
+
+    // Attach event listeners to each size-item
+    document.querySelectorAll('.size-item').forEach(item => {
+        item.addEventListener('click', (event) => {
+            // Remove 'active' class from all size items
+            document.querySelectorAll('.size-item').forEach(el => el.classList.remove('active'));
+
+            // Add 'active' class to the clicked size
+            const clickedItem = event.target.closest('.size-item');
+            if (!clickedItem) return; // Guard clause for null values
+            clickedItem.classList.add('active');
+
+            // Get the size from the data attribute
+            const selectedSize = clickedItem.getAttribute('data-size');
+
+            // Update stock status based on the selected size
+            const stockStatus = document.getElementById('stockStatus');
+            if (sizes[selectedSize] > 0) {
+                stockStatus.innerHTML = `<span style="color: green;">In Stock (${sizes[selectedSize]} items available)</span>`;
+            } else {
+                stockStatus.innerHTML = `<span style="color: red;">Out of Stock</span>`;
+            }
+
+            console.log("Selected Size:", selectedSize); // Debugging log
+        });
+    });
+});
+
+
+
+  const zoomLens = document.getElementById('zoom-lens');
+const zoomResult = document.getElementById('zoom-result');
+const productImages = document.querySelectorAll('.product-image');
+
+// Set the zoom effect for each image when it is hovered
+productImages.forEach(image => {
+    image.addEventListener('mouseover', (e) => {
+        const imagePath = e.target.src;
+        zoomResult.style.backgroundImage = `url('${imagePath}')`;
+        zoomLens.style.display = 'block';
+        zoomResult.style.display = 'block';
+
+        // Calculate zoom level based on image and result dimensions
+        const rect = e.target.getBoundingClientRect();
+        const zoomLevelX = zoomResult.offsetWidth / zoomLens.offsetWidth;
+        const zoomLevelY = zoomResult.offsetHeight / zoomLens.offsetHeight;
+
+        // Adjust background size to match zoom level
+        zoomResult.style.backgroundSize = `${rect.width * zoomLevelX}px ${rect.height * zoomLevelY}px`;
+
+        // Add move event listener to the specific image
+        image.addEventListener('mousemove', (event) => moveLens(event, rect, zoomLevelX, zoomLevelY));
+    });
+
+    image.addEventListener('mouseout', () => {
+        zoomLens.style.display = 'none';
+        zoomResult.style.display = 'none';
+
+        // Remove move event listener when not hovering
+        image.removeEventListener('mousemove', moveLens);
+    });
+});
+
+// Function to move the lens over the image and set the zoom result
+function moveLens(e, rect, zoomLevelX, zoomLevelY) {
+    // Calculate the cursor's x and y position relative to the image
+    let x = e.clientX - rect.left - (zoomLens.offsetWidth / 2);
+    let y = e.clientY - rect.top - (zoomLens.offsetHeight / 2);
+
+    // Ensure the lens does not move outside the bounds of the image
+    x = Math.max(0, Math.min(x, rect.width - zoomLens.offsetWidth));
+    y = Math.max(0, Math.min(y, rect.height - zoomLens.offsetHeight));
+
+    // Position the zoom lens within the image container
+    zoomLens.style.left = `${x}px`;
+    zoomLens.style.top = `${y}px`;
+
+    // Calculate the background position of the zoom result
+    const bgX = -x * zoomLevelX;
+    const bgY = -y * zoomLevelY;
+
+    // Set the background position to follow the cursor accurately
+    zoomResult.style.backgroundPosition = `${bgX}px ${bgY}px`;
+}
+
+
+function playSound(soundId) {
+    const sound = document.getElementById(soundId);
+    sound.currentTime = 0; // Reset the audio to the beginning
+    sound.play().catch(error => console.error('Error playing sound:', error));
+}
+
+// Display success popup with a custom message
+function showSuccessPopup(message) {
+    const successPopup = document.getElementById('successPopup');
+    successPopup.innerText = message;
+    successPopup.classList.add('show');
+    playSound('successSound');
+    setTimeout(() => {
+        successPopup.classList.remove('show');
+    }, 3000); // Display for 3 seconds
+}
+
+// Display error popup with a custom message
+function showErrorPopup(message) {
+    const errorPopup = document.getElementById('errorPopup');
+    errorPopup.innerText = message;
+    errorPopup.classList.add('show');
+    playSound('errorSound');
+    setTimeout(() => {
+        errorPopup.classList.remove('show');
+    }, 3000); // Display for 3 seconds
+}
+
+
+async function addToCart() {
+    const productId = document.querySelector('input[name="productId"]').value;
+    
+    // Get the active size element
+    const selectedSizeElement = document.querySelector('.size-item.active');
+    
+    // Check if a size is selected
+    if (!selectedSizeElement) {
+        showErrorPopup("Please select a size before adding to the cart");
+        return;
+    }
+
+    const size = selectedSizeElement.getAttribute('data-size');
+    console.log("Add to cart button clicked");
+    console.log("Selected size:", size);
+
+    // Prepare form data
+    const form = document.getElementById('addToCartForm');
+    const formData = new FormData(form);
+
+    // Convert FormData to JSON object
+    const payload = {};
+    formData.forEach((value, key) => {
+        payload[key] = value;
+    });
+
+    try {
+        const response = await fetch('/addtoCart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ payload, productId, size }), // Send JSON payload
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showSuccessPopup("✔ Added to cart");
+
+            // const addToCartButton = document.querySelector('.add-to-cart-btn');
+            // addToCartButton.textContent = 'Go to Cart';
+            // addToCartButton.style.backgroundColor = 'green';
+            // addToCartButton.setAttribute('onclick', "window.location.href='/cart'");
+            // addToCartButton.classList.remove('.add-to-cart-btn');
+        } else {
+
+
+            if (response.status === 401) {
+                showErrorPopup(response.message || "! Please make sure you are logged in");
+            }
+
+            if(response.status === 400){
+                showErrorPopup("! This is Out of Stock")
+            }
+
+            if(response.status === 409){
+                showErrorPopup("Hey,! Product already in the cart")
+            }
+        }
+    } catch (error) {
+        console.log("Error from add to cart:", error);
+    }
+}
+
+
+</script>
+
+
+
+    <!-- product-area end -->
