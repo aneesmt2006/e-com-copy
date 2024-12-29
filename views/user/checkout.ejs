@@ -278,6 +278,7 @@
               <div class="coupon-info">
                 <h2 class="coupon-text" style="color: darkorange;">Available Coupons</h2>
                 <form action="#">
+                  <%if(coupons.length >0){%>
                   <%coupons.forEach(coupon=>{%>
                   <p class="form-row-first" style="color: rgb(255, 25, 0);">
                     <label
@@ -291,6 +292,10 @@
                   </p>
                  
                   <%})%>
+                  <%}else{%>
+                  <p class="form-row-first" style="color: rgb(255, 25, 0);">
+                     NO coupons Available</p>
+                    <%}%>
                 </form>
               </div>
             </div>
